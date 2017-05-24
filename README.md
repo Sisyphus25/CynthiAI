@@ -1,0 +1,2 @@
+# CynthiAI
+Pokemon Showdown bot
