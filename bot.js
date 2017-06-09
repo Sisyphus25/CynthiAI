@@ -45,6 +45,7 @@ app.get('/process_get', function (req, res) {
 
 	//login 
 	client.on('data', function (msg) {
+		//keep track and update states
 		updateStates(msg, client);
 
 		//automate bot response
