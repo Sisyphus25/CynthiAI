@@ -4,7 +4,6 @@ var battleinfo = require('./battleinfo.js');
 var BattleMovedex = require('./database/moves.js').BattleMovedex;
 var Pokedex = require('./database/pokedex.js').BattlePokedex;
 
-
 var OpponentSide = battleinfo.OpponentSide;
 var Pokemon = battleinfo.Pokemon;
 var Moves = battleinfo.Moves;
