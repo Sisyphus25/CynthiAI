@@ -112,7 +112,7 @@ module.exports.UpdateStates = function (msg, client) {
 			else {
 			    	console.log("THERE IS AN ERROR WITH SWITCHINFO VAR")
 			    	console.log(switchinfo);
-		    }
+			}
 			//initiate new Pokemon(name, forme), setActive, setLevel, setGender, setHp
 			//TODO: predict stats (at least speed) based on pokemon and its level
 			var nameId = forme;
@@ -237,7 +237,7 @@ module.exports.UpdateStates = function (msg, client) {
 				opponentSide.addPokemon(newpoke);
 				console.log(opponentSide);
 				console.log('\n');
-		    }
+		    	}
 		}
 
 
@@ -313,7 +313,7 @@ module.exports.UpdateStates = function (msg, client) {
 				console.log("Update disabled move: ")
 				console.log(currActive);
 				console.log("\n");
-		    }
+		    	}
 		}
 		//or when currActive is switched out, also end disable (this is handled in UPDATE SWITCH)
 		
@@ -340,7 +340,7 @@ module.exports.UpdateStates = function (msg, client) {
 			    	if (damage_arr[2].startsWith("[from] item:")) {
 			        var item = damage_arr[2].split(": ")[1];
 			        currActive.setItem(item);
-			    }
+			    	}
 			}
 			console.log("Update HP: ")
 			console.log(currActive);
@@ -366,7 +366,7 @@ module.exports.UpdateStates = function (msg, client) {
 			    	if (heal_arr[2].startsWith("[from] item:")) {
 			        	var item = heal_arr[2].split(": ")[1];
 			        	currActive.setItem(item);
-			    }
+			    	}
 			}
 		}
 
@@ -427,10 +427,10 @@ module.exports.UpdateStates = function (msg, client) {
 		//needs testing
 		var statusP1Pos = msg.indexOf("|-status|p1a:");
 		if (statusP1Pos!=-1) {
-		    endPos = msg.substr(statusP1Pos).indexOf('\n');
-		    var status_arr = msg.substring(statusP1Pos+14, statusP1Pos+endPos).split("|"); //["Volcarona", "psn"]
-		    var status = status_arr[1]
-		    if (currActive.name != status_arr[0]) { //in case of error somehow
+		    	endPos = msg.substr(statusP1Pos).indexOf('\n');
+		    	var status_arr = msg.substring(statusP1Pos+14, statusP1Pos+endPos).split("|"); //["Volcarona", "psn"]
+		    	var status = status_arr[1]
+		    	if (currActive.name != status_arr[0]) { //in case of error somehow
 				console.log("ERROR: status target is not the same as currActive")
 				console.log("status target: " + status_arr[0]);
 				console.log("currActive: " + currActive.name);
@@ -522,14 +522,14 @@ module.exports.UpdateStates = function (msg, client) {
 		// |-clearnegativeboost|p1a: Torkoal|[silent] (often caused by white herb)
 		var negboostP1Pos = msg.indexOf("|-clearnegativeboost|p1a: ");
 		if (negboostP1Pos != -1) {
-		    var newlinePos = msg.substr(negboostP1Pos).indexOf('\n')
+		    	var newlinePos = msg.substr(negboostP1Pos).indexOf('\n')
 			endPos = (newlinePos!=-1) ? newlinePos : msg.substr(negboostP1Pos).length;
 			var clear_arr = msg.substring(negboostP1Pos, negboostP1Pos+endPos) // ["-clearnegativeboost", "p1a: Torkoal", "[silent]"]
 			var targetPokemon = clear_arr[1].split(": ")[1];
-            var boost = opponentSide[targetPokemon].boost;
-            for (stat in boost) {
-                if (boost[stat] < 0) {boost[stat] = 0};
-            }
+			var boost = opponentSide[targetPokemon].boost;
+            		for (stat in boost) {
+                		if (boost[stat] < 0) {boost[stat] = 0};
+            		}
 		}
 		
 		
@@ -539,11 +539,11 @@ module.exports.UpdateStates = function (msg, client) {
 		//test: update item with harvest
 		var itemP1Pos = msg.indexOf("|-item|p1a");
 		if (itemP1Pos!=-1) {
-		    endPos = msg.substr(itemP1Pos).indexOf('\n');
-		    var item_arr = msg.substring(itemP1Pos+12, itemP1Pos+endPos).split("|"); //["Aggron", "Aggronite", "[from] ability: Frisk", ...]
-		    console.log(item_arr) //to be removed once bug is fixed
-		    var item = item_arr[1]
-		    if (currActive.name != item_arr[0]) { //in case of error somehow
+		    	endPos = msg.substr(itemP1Pos).indexOf('\n');
+		    	var item_arr = msg.substring(itemP1Pos+12, itemP1Pos+endPos).split("|"); //["Aggron", "Aggronite", "[from] ability: Frisk", ...]
+		    	console.log(item_arr) //to be removed once bug is fixed
+		    	var item = item_arr[1]
+		    	if (currActive.name != item_arr[0]) { //in case of error somehow
 				console.log("ERROR: item source is not the same as currActive")
 				console.log("item source: " + item_arr[0]);
 				console.log("currActive: " + currActive.name);
@@ -561,11 +561,11 @@ module.exports.UpdateStates = function (msg, client) {
 		//need to autoupdate ability for mega poke
 		var abilityP1Pos = msg.indexOf("|-ability|p1a");
 		if (abilityP1Pos!=-1) {
-		    endPos = msg.substr(abilityP1Pos).indexOf('\n');
-		    var ability_arr = msg.substring(abilityP1Pos+15, abilityP1Pos+endPos).split("|"); // ["Rayquaza", "Air Lock"]
-		    console.log(ability_arr); //to be removed once bug is fixed
-		    var ability = ability_arr[1]
-		    if (currActive.name != ability_arr[0]) { //in case of error somehow
+		    	endPos = msg.substr(abilityP1Pos).indexOf('\n');
+		    	var ability_arr = msg.substring(abilityP1Pos+15, abilityP1Pos+endPos).split("|"); // ["Rayquaza", "Air Lock"]
+		    	console.log(ability_arr); //to be removed once bug is fixed
+		    	var ability = ability_arr[1]
+		    	if (currActive.name != ability_arr[0]) { //in case of error somehow
 				console.log("ERROR: ability source is not the same as currActive")
 				console.log("ability source: " + ability_arr[0]);
 				console.log("currActive: " + currActive.name);
@@ -576,38 +576,38 @@ module.exports.UpdateStates = function (msg, client) {
 			console.log("Update Ability: ")
 			console.log(currActive);
 			console.log("\n");
-	    }
-	    //in case opponent has Frisk ability (bot item is revealed by Frisk)
-	    abilityP1Pos = msg.indexOf("|[from] ability:");
-	    if (abilityP1Pos!=-1) {
-	        endPos = msg.substr(abilityP1Pos).indexOf('\n');
-	        var ability_arr = msg.substring(abilityP1Pos, abilityP1Pos+endPos).split("|"); //["[from] ability: Frisk", "[of] p1a: Furret",...]
-	        if (ability_arr[1].startsWith("[of] p1a:")) {
-	            ability = ability_arr[0].split(": ")[1];
-	            if (currActive.name != ability_arr[1].split(": ")[1]) { //in case of error somehow
-				console.log("ERROR: ability source is not the same as currActive")
-				console.log("ability source: " + ability_arr[0]);
-				console.log("currActive: " + currActive.name);
-			}
-			else {
-			    opponentSide[ability_arr[0]].setAbility(ability);
-			}
-	        }
-	    }
+	    	}
+	    	//in case opponent has Frisk ability (bot item is revealed by Frisk)
+	    	abilityP1Pos = msg.indexOf("|[from] ability:");
+	  	if (abilityP1Pos!=-1) {
+			endPos = msg.substr(abilityP1Pos).indexOf('\n');
+		   	var ability_arr = msg.substring(abilityP1Pos, abilityP1Pos+endPos).split("|"); //["[from] ability: Frisk", "[of] p1a: Furret",...]
+		   	if (ability_arr[1].startsWith("[of] p1a:")) {
+				ability = ability_arr[0].split(": ")[1];
+				if (currActive.name != ability_arr[1].split(": ")[1]) { //in case of error somehow
+					console.log("ERROR: ability source is not the same as currActive")
+					console.log("ability source: " + ability_arr[0]);
+					console.log("currActive: " + currActive.name);
+				}
+				else {
+				    opponentSide[ability_arr[0]].setAbility(ability);
+				}
+	        	}
+		}
 		//in case ability is revealed by Trace
 		//needs testing
 		var abilityP2Pos = msg.indexOf("|-ability|p2a:")
 		if (abilityP2Pos!=-1) {
-		    endPos = msg.substr(abilityP2Pos).indexOf("\n");
-		    if (msg.substring(abilityP2Pos+1, endPos).indexOf("[from] ability: Trace")!=-1) {
-		        var trace_arr = msg.substring(abilityP2Pos+1, endPos).split("|"); //["-ability", "p2a: Gardevoir", "Filter", "[from] ability: Trace",...]
-		        ability = trace_arr[2];
-		        currActive.setAbility(ability);
+		    	endPos = msg.substr(abilityP2Pos).indexOf("\n");
+		    	if (msg.substring(abilityP2Pos+1, endPos).indexOf("[from] ability: Trace")!=-1) {
+				var trace_arr = msg.substring(abilityP2Pos+1, endPos).split("|"); //["-ability", "p2a: Gardevoir", "Filter", "[from] ability: Trace",...]
+				ability = trace_arr[2];
+				currActive.setAbility(ability);
 
-		        console.log("Update Trace: ")
-		        console.log(currActive);
-		        console.log("\n")
-		    }
+				console.log("Update Trace: ")
+				console.log(currActive);
+				console.log("\n")
+	  		}
 		}
 
 
@@ -620,14 +620,14 @@ module.exports.UpdateStates = function (msg, client) {
 			// or weather_arr = ["Sandstorm", "[upkeep]]
 			//update opponent's ability
 			if (weather_arr.length > 2) {
-                var source = weather_arr[1].split(": ") // ["[from] ability", "Drizzle"]
-                var origin = weather_arr[2].split(": ") // ["[of] p1a", "Kyogre"]
-                if (source[0]=="[from] ability" && origin[0]=="[of] p1a" && currActive.name==origin[1]) {
-                    currActive.setAbility(source[1])
-                }
-                else {
-                    console.log("Weather does not come from opponent's ability");
-                }
+				var source = weather_arr[1].split(": ") // ["[from] ability", "Drizzle"]
+				var origin = weather_arr[2].split(": ") // ["[of] p1a", "Kyogre"]
+				if (source[0]=="[from] ability" && origin[0]=="[of] p1a" && currActive.name==origin[1]) {
+				    currActive.setAbility(source[1])
+				}
+				else {
+				    console.log("Weather does not come from opponent's ability");
+				}
 			}
 			//set
 			var weather = weather_arr[0];
@@ -637,10 +637,10 @@ module.exports.UpdateStates = function (msg, client) {
 			else {
 			    field.setWeather(null);
 			}
-            console.log(field)
+            		console.log(field)
 		}
 
-        //update terrain/pseudoweather, needs testing with terrain shit
+        	//update terrain/pseudoweather, needs testing with terrain shit
 		var pseudoWeatherPos = msg.indexOf("|-fieldstart|move: ")
 		if (pseudoWeatherPos!=-1) {
 		    endPos = msg.substr(pseudoWeatherPos).indexOf('\n');
