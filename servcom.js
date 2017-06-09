@@ -15,7 +15,7 @@ if(client) {
 
 //receiving and sending messages
 client.on('data', function (msg) {
-    updateStates(msg, client);
+	updateStates(msg, client);
 }
 )
 
