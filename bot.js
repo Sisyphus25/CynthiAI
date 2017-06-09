@@ -46,34 +46,6 @@ app.get('/process_get', function (req, res) {
 	client.on('data', function (msg) {
 		//keep track and update states, also loggin in goes here
 		updateStates(msg, client);
-
-		//automate bot response
-		if (parts[0].includes('gen7customgame')) {
-			if (parts[1] === 'title') {
-				room = parts[0];
-				console.log('Currently in '+room);
-				room = room.replace(/\n|\r/g,'');
-				//initiate timer
-				client.write(room+"|/timer on");
-				
-			}
-			if (parts[1] === 'error') {
-				if (parts[2].includes('teampreview response')) {
-					client.write(room+"|/team 123456|3");					}
-				else {
-					_switchChoice++;
-					client.write(room + "|/switch " + _switchChoice);
-					if (_switchChoice>=6) _switchChoice = 1;
-				}
-			}
-			if (parts[1] === 'request') {
-				//side = JSON.parse(parts[2]);
-				client.write(room + '|/move');
-				_switchChoice = 1;
-			}
-			console.log('<<<');
-			console.log(msg + "\n\n" );
-		}
 	});
 })
 
