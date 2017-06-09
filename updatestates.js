@@ -110,23 +110,23 @@ module.exports.UpdateStates = function (msg, client) {
 				var hp = level_hp[1].split("/")[0];
 			}
 			else {
-			    console.log("THERE IS AN ERROR WITH SWITCHINFO VAR")
-			    console.log(switchinfo);
+			    	console.log("THERE IS AN ERROR WITH SWITCHINFO VAR")
+			    	console.log(switchinfo);
 		    }
 			//initiate new Pokemon(name, forme), setActive, setLevel, setGender, setHp
 			//TODO: predict stats (at least speed) based on pokemon and its level
 			var nameId = forme;
 			while (nameId.indexOf("-")!=-1 || nameId.indexOf(" ")!=-1) {
-			    nameId = nameId.replace("-", "");
-			    nameId = nameId.replace(" ", "");
+				nameId = nameId.replace("-", "");
+				nameId = nameId.replace(" ", "");
 			}
 			nameId = nameId.toLowerCase();
 			console.log("forme ID: " + nameId);
-            //possible abilities
+			//possible abilities
 			var possible_abilities = new Array()
 			for (key in Pokedex[nameId].abilities) {
-			   var possibleAbility = Pokedex[nameId].abilities[key];
-			   possible_abilities.splice(0, 0, possibleAbility);
+				var possibleAbility = Pokedex[nameId].abilities[key];
+			   	possible_abilities.splice(0, 0, possibleAbility);
 			}
 			console.log("Possible abilities: ");
 			console.log(possible_abilities);
@@ -139,10 +139,10 @@ module.exports.UpdateStates = function (msg, client) {
 			newpoke.setMoves();
 			newpoke.boost = new Boost();
 			if (possible_abilities.length == 1) {
-			    newpoke.setAbility(possible_abilities[0]);
+			    	newpoke.setAbility(possible_abilities[0]);
 			}
 			else {
-			    newpoke.setAbility(possible_abilities);
+			    	newpoke.setAbility(possible_abilities);
 			}
 			//reset boost upon switching out, remember to set active to false for the current active mon, and then replace it with the new active mon
 			if (currActive!=null) {
@@ -167,7 +167,7 @@ module.exports.UpdateStates = function (msg, client) {
 		//UPDATE DRAG (like whirlwind, dragontail)
 		var dragP1Pos = msg.indexOf("|drag|p1a:");
 		if (dragP1Pos!=-1) {
-		    endPos = msg.substr(dragP1Pos).indexOf('/100')+4;
+		    	endPos = msg.substr(dragP1Pos).indexOf('/100')+4;
 			var draginfo = msg.substring(dragP1Pos+11, dragP1Pos+endPos).split(', '); //['Name|forme', level, gender|hp]
 
 			var name = draginfo[0].split("|")[0];
@@ -189,21 +189,21 @@ module.exports.UpdateStates = function (msg, client) {
 				var hp = level_hp[1].split("/")[0];
 			}
 			else {
-			    console.log("THERE IS AN ERROR WITH DRAGINFO VAR")
-			    console.log(draginfo);
+			    	console.log("THERE IS AN ERROR WITH DRAGINFO VAR")
+			    	console.log(draginfo);
 			}
 			//initiate new Pokemon(name, forme), setActive, setLevel, setGender, setHp
 			//TODO: predict stats (at least speed) based on pokemon and its level
 			var nameId = forme;
 			while (nameId.indexOf("-")!=-1) {
-			    nameId.replace("-", "");
+			    	nameId.replace("-", "");
 			}
 			nameId = nameId.toLowerCase();
 			//possible ability
 			var possible_abilities = new Array()
 			for (key in Pokedex[nameId].abilities) {
-			   var possibleAbility = Pokedex[nameId].abilities[key];
-			   possible_abilities.splice(0, 0, possibleAbility);
+			   	var possibleAbility = Pokedex[nameId].abilities[key];
+			   	possible_abilities.splice(0, 0, possibleAbility);
 			}
 			console.log("Possible abilities: ");
 			console.log(possible_abilities);
@@ -216,17 +216,17 @@ module.exports.UpdateStates = function (msg, client) {
 			newpoke.setMoves();
 			newpoke.boost = new Boost();
 			if (possible_abilities.length == 1) {
-			    newpoke.setAbility(possible_abilities[0]);
+			    	newpoke.setAbility(possible_abilities[0]);
 			}
 			else {
-			    newpoke.setAbility(possible_abilities);
+				newpoke.setAbility(possible_abilities);
 			}
 			//reset boost and disabled upon switching out, remember to set active to false for the current active mon, and then replace it with the new active mon
 			if (currActive!=null) {
 				currActive.setActive(false);
 				currActive.boost = new Boost();
 				if (currActive.disabledmove != null) {
-				    currActive.moves[currActive.disabledmove].disabled = false;
+					currActive.moves[currActive.disabledmove].disabled = false;
 				}
 				currActive = newpoke;
 			}
@@ -266,9 +266,9 @@ module.exports.UpdateStates = function (msg, client) {
 				// SETMAXPP GOES HERE
 				var moveId = moveName;
 				while (moveId.indexOf(" ")!=-1 || moveId.indexOf("-")!=-1) {
-                    moveId = moveId.replace(' ','');
-                    moveId = moveId.replace('-',''); //THIS LINE IS FOR WILL-O-WISP, NEEDS TESTING
-                    }
+                    			moveId = moveId.replace(' ','');
+                    			moveId = moveId.replace('-',''); //THIS LINE IS FOR WILL-O-WISP, NEEDS TESTING
+                    		}
 				moveId = moveId.toLowerCase()
 				newmove.maxPp = (8/5)*BattleMovedex[moveId]["pp"]; //might be buggy. doesn't work for Multi-Attack
 				newmove.pp = newmove.maxPp-1; //TODO: HOW ABOUT PRESSURE???
@@ -278,7 +278,7 @@ module.exports.UpdateStates = function (msg, client) {
 			}
 			console.log("Update Moves: ")
 			console.log(currActive);
-		    console.log("\n");
+		    	console.log("\n");
 		}
 		//when a move is disabled
 		//needs testing
@@ -319,7 +319,7 @@ module.exports.UpdateStates = function (msg, client) {
 		
 		
 		//UPDATE HP
-        var damageP1Pos = msg.indexOf('|-damage|p1a: '); // damage msg: |-damage|p1a: Seaking|49/100|[from] item: Life Orb
+		var damageP1Pos = msg.indexOf('|-damage|p1a: '); // damage msg: |-damage|p1a: Seaking|49/100|[from] item: Life Orb
 		if (damageP1Pos!=-1) {
 		    var newlinePos = msg.substr(damageP1Pos).indexOf('\n')
 			endPos = (newlinePos!=-1) ? newlinePos : msg.substr(damageP1Pos).length;
@@ -386,7 +386,7 @@ module.exports.UpdateStates = function (msg, client) {
 			currActive.setForme(forme);
 			console.log("Update details: ")
 			console.log(currActive);
-            //update mega stone
+			//update mega stone
 			var megaP1Pos = msg.indexOf("|-mega|p1a: ");
 			if (megaP1Pos!=-1) {
 			    endPos = msg.substr(megaP1Pos).indexOf('\n');
@@ -436,7 +436,7 @@ module.exports.UpdateStates = function (msg, client) {
 				console.log("currActive: " + currActive.name);
 			}
 			else {
-			    currActive.setStatus(status);
+			    	currActive.setStatus(status);
 			}
 			console.log("Update status: ")
 			console.log(currActive);
@@ -444,37 +444,37 @@ module.exports.UpdateStates = function (msg, client) {
 		//update cure status
 		var curestatusP1Pos = msg.indexOf("|-curestatus|p1a:");
 		if (curestatusP1Pos!=-1) {
-		    endPos = msg.substr(curestatusP1Pos).indexOf("\n");
-		    cure_arr = msg.substring(curestatusP1Pos+18, curestatusP1Pos+endPos).split("|"); //["Politoed", "slp", "[msg]"]
-		    var status = cure_arr[1];
-		    if (currActive.name != cure_arr[0]) {
-		        console.log("ERROR: currActive is not the same as cure target");
-		        console.log("cure target: "+cure_arr[0]);
-		        console.log("currActive: "+currActive);
-		    }
-		    else {
-		        currActive.setStatus(null);
-		    }
-		    console.log("Update cure status: ")
-		    console.log(currActive);
-            //cure team, needs testing
-		    curestatusP1Pos = msg.indexOf("|-curestatus|p1:");
-		    var submsg = msg;
-		    while (curestatusP1Pos!=-1) { //if there is |-curestatus:p1
-		        endPos = submsg.substr(curestatusP1Pos).indexOf("\n");
-		        cure_arr = submsg.substring(curestatusP1Pos+17, curestatusP1Pos+endPos).split("|"); //["Politoed", "slp", "[msg]"]
-                var status = cure_arr[1];
-                if (currActive.name != cure_arr[0]) {
-                    console.log("ERROR: currActive is not the same as cure target");
-                    console.log("cure target: "+cure_arr[0]);
-                    console.log("currActive: "+currActive);
-                }
-                else {
-                    currActive.setStatus(null);
-                }
-		        submsg = submsg.substr(curestatusP1Pos+17);
-		        curestatusP1Pos = submsg.indexOf("|-curestatus|p1:")
-		    }
+			endPos = msg.substr(curestatusP1Pos).indexOf("\n");
+			cure_arr = msg.substring(curestatusP1Pos+18, curestatusP1Pos+endPos).split("|"); //["Politoed", "slp", "[msg]"]
+	        	var status = cure_arr[1];
+			if (currActive.name != cure_arr[0]) {
+			    	console.log("ERROR: currActive is not the same as cure target");
+			    	console.log("cure target: "+cure_arr[0]);
+			    	console.log("currActive: "+currActive);
+			}
+		    	else {
+		        	currActive.setStatus(null);
+		    	}
+		    	console.log("Update cure status: ")
+		    	console.log(currActive);
+            		//cure team, needs testing
+		    	curestatusP1Pos = msg.indexOf("|-curestatus|p1:");
+		    	var submsg = msg;
+		    	while (curestatusP1Pos!=-1) { //if there is |-curestatus:p1
+				endPos = submsg.substr(curestatusP1Pos).indexOf("\n");
+				cure_arr = submsg.substring(curestatusP1Pos+17, curestatusP1Pos+endPos).split("|"); //["Politoed", "slp", "[msg]"]
+				var status = cure_arr[1];
+				if (currActive.name != cure_arr[0]) {
+					console.log("ERROR: currActive is not the same as cure target");
+					console.log("cure target: "+cure_arr[0]);
+					console.log("currActive: "+currActive);
+				}
+				else {
+					currActive.setStatus(null);
+				}
+				submsg = submsg.substr(curestatusP1Pos+17);
+				curestatusP1Pos = submsg.indexOf("|-curestatus|p1:")
+			}
 		}
 		
 		
@@ -499,7 +499,7 @@ module.exports.UpdateStates = function (msg, client) {
 			}
 			msgStr = msgStr.substr(boostP1Pos+1); //to search for the next |-boost|p1a
 		}
-        //unboost
+        	//unboost
 		msgStr = msg;
 		var unboostP1Pos;
 		while (msgStr.indexOf('|-unboost|p1a')!=-1) {
