@@ -1,6 +1,5 @@
-var fs = require('fs');
-var util = require('./util');
 var request = require('request');
+var updateStates = require('./updatestates.js').UpdateStates;
 
 //contain functions for import and export team
 var Tools = require('./database/tools.js')
@@ -32,7 +31,7 @@ app.get('/process_get', function (req, res) {
    	customTeam = Tools.packTeam(teamArray);
    	console.log('customTeam received');
 
-    //Connect to server
+	//Connect to server
 	var sockjs = require('sockjs-client-ws');
 	var client = null;
 	client = sockjs.create("http://sim.smogon.com:8000/showdown");
@@ -43,9 +42,9 @@ app.get('/process_get', function (req, res) {
 		});
 	}
 
-	//login 
+	//on receiving message from server
 	client.on('data', function (msg) {
-		//keep track and update states
+		//keep track and update states, also loggin in goes here
 		updateStates(msg, client);
 
 		//automate bot response
@@ -58,8 +57,6 @@ app.get('/process_get', function (req, res) {
 				client.write(room+"|/timer on");
 				
 			}
-			
-
 			if (parts[1] === 'error') {
 				if (parts[2].includes('teampreview response')) {
 					client.write(room+"|/team 123456|3");					}
@@ -69,18 +66,14 @@ app.get('/process_get', function (req, res) {
 					if (_switchChoice>=6) _switchChoice = 1;
 				}
 			}
-			
-
 			if (parts[1] === 'request') {
 				//side = JSON.parse(parts[2]);
 				client.write(room + '|/move');
 				_switchChoice = 1;
 			}
-
 			console.log('<<<');
 			console.log(msg + "\n\n" );
 		}
-
 	});
 })
 
