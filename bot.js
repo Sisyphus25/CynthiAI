@@ -45,46 +45,7 @@ app.get('/process_get', function (req, res) {
 
 	//login 
 	client.on('data', function (msg) {
-		var parts;
-		
-		//Logging
-		console.log(msg);
-		if(msg.charAt(0) === '|' || msg.charAt(0) === '>') {
-			parts = msg.substr(1).split('|');
-		} 
-		else {
-			parts =[];
-		}
-		//basically to obtain CHALLSTR, which is required for logging in
-		if (parts[0]=="challstr") {
-			var key_id = parts[1]
-			var Challenge = parts[2]
-			var CHALLSTR = key_id + "|" + Challenge
-			
-			//send POST request to login server
-			request.post({
-				url : 'http://play.pokemonshowdown.com/action.php',
-				form : {
-					act: 'login',
-					name: 'CynthiAI',
-					pass: 'Pokemon',
-					challstr : CHALLSTR
-				}},
-
-				//upon receiving a message from server after POST req is sent, this function will run
-				function (err, response, body) {
-					var data = util.safeJSON(body);
-					//console.log("this is my custom team +\n"+customTeam);
-
-					request = "|/trn " + "CynthiAI" + ",0," + data.assertion; 
-					client.write(request); //send assertion to server to confirm login
-					client.write("|/avatar 260"); //set sprite to Cynthia
-					client.write("|/utm "+ customTeam);
-					//client.write("|/vtm ubers")
-					client.write("|/challenge deep__focus__, gen7customgame");//challenge 				
-				}
-			);
-		}
+		updateStates(msg, client);
 
 		//automate bot response
 		if (parts[0].includes('gen7customgame')) {
