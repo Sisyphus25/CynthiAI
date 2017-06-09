@@ -284,35 +284,35 @@ module.exports.UpdateStates = function (msg, client) {
 		//needs testing
 		var startPos = msg.indexOf('|-start|p1');
 		if (startPos!=-1) {
-		    endPos = msg.substr(startPos).indexOf('\n');
-		    msgStr = msg.substring(startPos+1,startPos+endPos);
-		    var start_arr = msgStr.split("|") //["-start", "p1a: Seviper", "Disable", "X-Scissor", "[from] ability...",...]
-		    var opp_arr = start_arr[1].split(': '); //["p1a", "Seviper"]
-		    if (msgStr.indexOf("Disable")!=-1 && opp_arr[0] == "p1a") { //if there is Disable and if target is opponent
-		        // a layer of error checking here
-		        if (currActive.name != start_arr[1].split(": ")[1]) {
-		            console.log("ERROR: currActive is not the same as disabled mon");
-		            console.log("currActive: " + currActive.name);
-		            console.log("disabled mon: " + start_arr[1].split(": ")[1])
+		    	endPos = msg.substr(startPos).indexOf('\n');
+			msgStr = msg.substring(startPos+1,startPos+endPos);
+			var start_arr = msgStr.split("|") //["-start", "p1a: Seviper", "Disable", "X-Scissor", "[from] ability...",...]
+			var opp_arr = start_arr[1].split(': '); //["p1a", "Seviper"]
+			if (msgStr.indexOf("Disable")!=-1 && opp_arr[0] == "p1a") { //if there is Disable and if target is opponent
+		        	// a layer of error checking here
+				if (currActive.name != start_arr[1].split(": ")[1]) {
+					console.log("ERROR: currActive is not the same as disabled mon");
+				    	console.log("currActive: " + currActive.name);
+				    	console.log("disabled mon: " + start_arr[1].split(": ")[1])
 		        }
 		        else {
-                    currActive.moves[start_arr[3]].disabled = true;
-                    currActive.disabledmove = start_arr[3]
+                    		currActive.moves[start_arr[3]].disabled = true;
+                    		currActive.disabledmove = start_arr[3]
 		        }
 		        console.log("Update disabled move: ")
 		        console.log(currActive);
 		        console.log("\n");
-		    }
+		}
 		} //end disable
 		var end = msg.indexOf('|-end|');
 		if (end!=-1) {
-		    endPos = msg.substr(end).indexOf('\n');
-		    var end_arr = msg.substring(end+1, end+endPos).split("|"); //["-end", "p1a: Forretress", "Disable"]
-		    if (end_arr[0]=="-end" && end_arr[1].split(": ")[0] == "p1a" &&end_arr[2]=="Disable") {
-		        currActive.moves[currActive.disabledmove].disabled = false;
-		        console.log("Update disabled move: ")
-		        console.log(currActive);
-		        console.log("\n");
+			endPos = msg.substr(end).indexOf('\n');
+			var end_arr = msg.substring(end+1, end+endPos).split("|"); //["-end", "p1a: Forretress", "Disable"]
+		    	if (end_arr[0]=="-end" && end_arr[1].split(": ")[0] == "p1a" &&end_arr[2]=="Disable") {
+				currActive.moves[currActive.disabledmove].disabled = false;
+				console.log("Update disabled move: ")
+				console.log(currActive);
+				console.log("\n");
 		    }
 		}
 		//or when currActive is switched out, also end disable (this is handled in UPDATE SWITCH)
@@ -321,23 +321,23 @@ module.exports.UpdateStates = function (msg, client) {
 		//UPDATE HP
 		var damageP1Pos = msg.indexOf('|-damage|p1a: '); // damage msg: |-damage|p1a: Seaking|49/100|[from] item: Life Orb
 		if (damageP1Pos!=-1) {
-		    var newlinePos = msg.substr(damageP1Pos).indexOf('\n')
+		    	var newlinePos = msg.substr(damageP1Pos).indexOf('\n')
 			endPos = (newlinePos!=-1) ? newlinePos : msg.substr(damageP1Pos).length;
 			erroneousString =  msg.substring(damageP1Pos+14, damageP1Pos+endPos)
 			var damage_arr = msg.substring(damageP1Pos+14, damageP1Pos+endPos).split("|"); //['Seaking', '49/100 brn', "[from] item: Life Orb"]
 			var hp = parseInt(damage_arr[1].split("/")[0]);
 			if (currActive.name != damage_arr[0]) { //set HP
-			    console.log("ERRONEOUS STRING: " +erroneousString);
-			    console.log("ERROR: currActive is not the same as damaged pokemon");
-			    console.log("currActive: "+currActive.name);
-			    console.log("damaged pokemon: "+damage_arr[0])
+				console.log("ERRONEOUS STRING: " +erroneousString);
+				console.log("ERROR: currActive is not the same as damaged pokemon");
+				console.log("currActive: "+currActive.name);
+				console.log("damaged pokemon: "+damage_arr[0])
 			}
 			else {
-			    currActive.setHp(hp);
+			    	currActive.setHp(hp);
 			}
 			//update item
 			if (damage_arr.length > 2) {
-			    if (damage_arr[2].startsWith("[from] item:")) {
+			    	if (damage_arr[2].startsWith("[from] item:")) {
 			        var item = damage_arr[2].split(": ")[1];
 			        currActive.setItem(item);
 			    }
@@ -354,18 +354,18 @@ module.exports.UpdateStates = function (msg, client) {
 			var heal_arr = msg.substring(healP1Pos+12, healP1Pos+endPos).split("|"); //['Seaking', '49/100 brn', "[from] item: Life Orb"]
 			var hp = parseInt(heal_arr[1].split("/")[0]);
 			if (currActive.name != heal_arr[0]) { //set HP
-			    console.log("ERROR: currActive is not the same as healed pokemon");
-			    console.log("currActive: "+currActive.name);
-			    console.log("healed pokemon: "+heal_arr[0])
+			    	console.log("ERROR: currActive is not the same as healed pokemon");
+			    	console.log("currActive: "+currActive.name);
+			    	console.log("healed pokemon: "+heal_arr[0])
 			}
 			else {
-			    currActive.setHp(hp);
+			    	currActive.setHp(hp);
 			}
 			//update item
 			if (heal_arr.length > 2) {
-			    if (heal_arr[2].startsWith("[from] item:")) {
-			        var item = heal_arr[2].split(": ")[1];
-			        currActive.setItem(item);
+			    	if (heal_arr[2].startsWith("[from] item:")) {
+			        	var item = heal_arr[2].split(": ")[1];
+			        	currActive.setItem(item);
 			    }
 			}
 		}
@@ -386,30 +386,30 @@ module.exports.UpdateStates = function (msg, client) {
 			currActive.setForme(forme);
 			console.log("Update details: ")
 			console.log(currActive);
-			//update mega stone
+            		//update mega stone
 			var megaP1Pos = msg.indexOf("|-mega|p1a: ");
 			if (megaP1Pos!=-1) {
-			    endPos = msg.substr(megaP1Pos).indexOf('\n');
-			    var mega_arr = msg.substring(megaP1Pos+12, megaP1Pos+endPos).split("|"); // ["Glalie", "Glalie", "Glalitite"]
-                var item = mega_arr[2];
-                if (currActive.name != mega_arr[0]) {
-			    console.log("ERROR: currActive is not the same as mega pokemon");
-			    console.log("currActive: "+currActive.name);
-			    console.log("mega pokemon: "+mega_arr[0])
-			    }
-                else {
-                    currActive.setItem(item);
-                }
+			    	endPos = msg.substr(megaP1Pos).indexOf('\n');
+			    	var mega_arr = msg.substring(megaP1Pos+12, megaP1Pos+endPos).split("|"); // ["Glalie", "Glalie", "Glalitite"]
+                		var item = mega_arr[2];
+                		if (currActive.name != mega_arr[0]) {
+					console.log("ERROR: currActive is not the same as mega pokemon");
+					console.log("currActive: "+currActive.name);
+					console.log("mega pokemon: "+mega_arr[0])
+			    	}
+                	else {
+                    		currActive.setItem(item);
+                	}
 			    //update mega ability
-			    var formeId = forme;
-			    while (formeId.indexOf("-")!=-1 || formeId.indexOf(" ")!=-1) {
-                    formeId = formeId.replace("-", "");
-                    formeId = formeId.replace(" ", "");
-			    }
-			    formeId = formeId.toLowerCase();
-			    console.log(formeId);
-			    var ability = Pokedex[formeId].abilities[0];
-			    currActive.setAbility(ability);
+			var formeId = forme;
+			while (formeId.indexOf("-")!=-1 || formeId.indexOf(" ")!=-1) {
+				formeId = formeId.replace("-", "");
+				formeId = formeId.replace(" ", "");
+			}
+			formeId = formeId.toLowerCase();
+			console.log(formeId);
+			var ability = Pokedex[formeId].abilities[0];
+			currActive.setAbility(ability);
 			}
 		}
 		var formechangeP1Pos = msg.indexOf('|-formechange|p1a');
