@@ -658,17 +658,17 @@ module.exports.UpdateStates = function (msg, client) {
 		}
 		var fieldendPos = msg.indexOf("|-fieldend|move: ")
 		if (fieldendPos!=-1) {
-		    endPos = msg.substr(fieldendPos).indexOf('\n');
-            var fieldend_arr = msg.substring(fieldendPos+17, fieldendPos+endPos).split("|"); //TODO: buggy: array is empty
-            pseudoweather = fieldend_arr[0];
-            if (pseudoWeather.indexOf("Terrain")==-1){ // if not a terrain move
-                field.removePseudoWeather(pseudoweather);
-                console.log(field);
-            }
-            else { // if is a terrain move
-                field.terrain = null;
-                console.log(field);
-            }
+		   	endPos = msg.substr(fieldendPos).indexOf('\n');
+           		var fieldend_arr = msg.substring(fieldendPos+17, fieldendPos+endPos).split("|"); //TODO: buggy: array is empty
+            		pseudoweather = fieldend_arr[0];
+            		if (pseudoWeather.indexOf("Terrain")==-1){ // if not a terrain move
+                	field.removePseudoWeather(pseudoweather);
+                	console.log(field);
+            		}
+            		else { // if is a terrain move
+                		field.terrain = null;
+                		console.log(field);
+            		}
 		}
 		
 
@@ -676,34 +676,34 @@ module.exports.UpdateStates = function (msg, client) {
 		//UPDATE CONDITION (stealth rock, spikes, toxic spikes, sticky web, reflect, tailwind, safeguard...)
 		var sidestartP1Pos = msg.indexOf("|-sidestart|p1"); // msg.substr(..) = "|-sidestart|p1: daDangminh| move: Stealth Rock"
 		if (sidestartP1Pos!=-1) {
-		    endPos = msg.substr(sidestartP1Pos).indexOf('\n');
-		    var oppcondition = msg.substring(sidestartP1Pos+16, sidestartP1Pos+endPos).split(": ")[1];
-            field.setOppCondition(oppcondition);
-            console.log(field);
+		    	endPos = msg.substr(sidestartP1Pos).indexOf('\n');
+		    	var oppcondition = msg.substring(sidestartP1Pos+16, sidestartP1Pos+endPos).split(": ")[1];
+            		field.setOppCondition(oppcondition);
+            		console.log(field);
 		}
 		var sidestartP2Pos = msg.indexOf("|-sidestart|p2"); // msg.substr(..) = "|-sidestart|p2: CynthiAI| move: Stealth Rock"
 		if (sidestartP2Pos!=-1) {
-		    endPos = msg.substr(sidestartP2Pos).indexOf('\n');
-		    var botcondition = msg.substring(sidestartP2Pos+16, sidestartP2Pos+endPos).split(": ")[1];
-            field.setBotCondition(botcondition);
-            console.log(field);
+		    	endPos = msg.substr(sidestartP2Pos).indexOf('\n');
+		    	var botcondition = msg.substring(sidestartP2Pos+16, sidestartP2Pos+endPos).split(": ")[1];
+            		field.setBotCondition(botcondition);
+           		console.log(field);
 		}
 		var sideendP1Pos = msg.indexOf("|-sideend|p1"); // sideend msg: "|-sideend|p1: daDangminh|Stealth Rock|[from] move: Defog|[of] p1a: Watchog"
 		if (sideendP1Pos!=-1) {
-		    endPos = msg.substr(sideendP1Pos).indexOf('\n');
-		    var oppcondition = msg.substring(sideendP1Pos+14, sideendP1Pos+endPos).split("|")[1];
-            field.removeOppCondition(oppcondition); //probably wrong
-            console.log(field);
+		    	endPos = msg.substr(sideendP1Pos).indexOf('\n');
+		    	var oppcondition = msg.substring(sideendP1Pos+14, sideendP1Pos+endPos).split("|")[1];
+            		field.removeOppCondition(oppcondition); //probably wrong
+            		console.log(field);
 		}
 		var sideendP2Pos = msg.indexOf("|-sideend|p2");
 		if (sideendP2Pos!=-1) {
-		    endPos = msg.substr(sideendP2Pos).indexOf('\n');
-		    var botcondition = msg.substring(sideendP2Pos+14, sideendP2Pos+endPos).split("|")[1];
-            field.removeBotCondition(botcondition); //probably wrong
-            console.log(field);
+		    	endPos = msg.substr(sideendP2Pos).indexOf('\n');
+		    	var botcondition = msg.substring(sideendP2Pos+14, sideendP2Pos+endPos).split("|")[1];
+            		field.removeBotCondition(botcondition); //probably wrong
+            		console.log(field);
 		}
 		
-        //TODO: fieldactivate: perish song, ion deluge. man screw this shit
+        	//TODO: fieldactivate: perish song, ion deluge. man screw this shit
 	}
 	
 	//automate bot response
