@@ -2,7 +2,7 @@
 var BattlePokedex = require('./pokedex.js');
 var BattleAliases = require('./aliases.js');
 var BattleTypeChart = require('./typechart.js');
-var BattleStatIDs = require('./basespecies.js');
+var BattleStatIDs = require('./battlestatid.js');
 var baseSpeciesChart = require('./basespecies');
 
 //Handling teams
