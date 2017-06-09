@@ -707,30 +707,7 @@ module.exports.UpdateStates = function (msg, client) {
         //TODO: fieldactivate: perish song, ion deluge. man screw this shit
 	}
 	
-	
-	
-	//automate bot response
-	//temporarily
-	if (parts[0].includes('gen7randombattle')) {
-		if (parts[1] === 'init') {
-			room = parts[0];
-			room = room.replace(/\n|\r/g,'');
 
-			//initiate timer
-			client.write(room+"|/timer on");
-		}
-
-		if (parts[1] === 'error') {
-			_switchChoice++;
-			client.write(room + "|/switch " + _switchChoice);
-			if (_switchChoice>=6) _switchChoice = 1;
-		}
-
-		if (parts[1] === 'request') {
-			//side = JSON.parse(parts[2]);
-			client.write(room + '|/move');
-			_switchChoice = 1;
-		}
 
 	}
 		
