@@ -380,7 +380,7 @@ function toId(text) {
 
 //check if string.prototype.trim is a function or not and declare the function if not
 if (typeof String.prototype.trim != 'function') { // detect native implementation
-  String.prototype.trim = function () {
-    return this.replace(/^\s+/, '').replace(/\s+$/, '');
-  };
+  	String.prototype.trim = function () {
+    		return this.replace(/^\s+/, '').replace(/\s+$/, '');
+  	};
 }
