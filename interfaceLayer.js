@@ -1,5 +1,5 @@
 ﻿'use strict';
-
+var Pokedex = require('./zarel/data/pokedex.js').BattlePokedex;
 /*
 	This file is used for handling communication between each agent (bot) and server
 	Information regarding battle logs will be collected and processed
@@ -240,7 +240,7 @@ class InterfaceLayer {
         if (status.durationCallback) {
             pokemon.volatiles[status.id].duration = status.durationCallback.call(this.battle, pokemon);
         }
-        console.log('BUG CHECK: ' + status);
+
         result = this.battle.singleEvent('Start', status, pokemon.volatiles[status.id], pokemon); //TODO: cursedbody bug here
         if (!result) {
             // cancel
@@ -562,6 +562,16 @@ class InterfaceLayer {
                 if (infoarr[1]) {
                     this.runExternalStatus(this.battle.sides[1 - this.mySID].active[0], infoarr[1]);
                 }
+                if (arr[4]){
+					if (arr[4].startsWith('[from] ability')) { //for waterabsorb/voltabsorb
+						var ability = arr[4].split(': ')[1];
+						this.runExternalAddAbility(this.battle.sides[1-this.mySID].active[0], toId(ability));
+					}
+					if (arr[4].startsWith('[from] item')) { //for leftovers, life orb..
+						var item = arr[4].split(': ')[1];
+						this.runExternalAddItem(this.battle.sides[1-this.mySID].active[0], toId(item));
+					}
+                }
             }
         }
         else if (tag == '-sethp') {
@@ -579,6 +589,23 @@ class InterfaceLayer {
                     this.battle.sides[1].active[0].hp = numerator;
         		}
         	}
+        }
+        else if (tag == '-immune') {
+        	if (!arr[2].startsWith(this.mySide)) { //to handle water absorb/ volt absorb ability of opp
+        		if (arr[4] && arr[4].startsWith('[from] ability')) {
+        			var ability = arr[4].split(': ')[1];
+        			this.runExternalAddAbility(this.battle.sides[1-this.mySID].active[0], toId(ability));
+        		}
+        	}
+        }
+        else if (tag == 'faint') {
+        	var side = arr[2].split(' ')[0];
+			if (side.startsWith(this.mySide)) {
+				this.battle.sides[this.mySID].active[0].hp = 0;
+			}
+			else {
+				this.battle.sides[1-this.mySID].active[0].hp = 0;
+			}
         }
         // -weather  Update model.  Can be upkeep (just up the turn counter).  Second value becomes 'none' upon ending
         else if (tag == '-weather') {
@@ -802,7 +829,7 @@ class InterfaceLayer {
             this.battle.sides[sindex].active[0].setBoost(boosts);
         }
         // -detailschange is irrelevant here.  No ubers means no primal means no detailchanges
-        //TODO: detailschange change the species and update ablity
+        //TODO: detailschange change the species and update ablity and update type, perhaps change item to megastone
         else if (tag == 'detailschange') {
         	var sps = arr[3].split(', ')[0];
         	if (arr[2].startsWith(this.mySide)) { //p2
@@ -810,7 +837,14 @@ class InterfaceLayer {
         	}
         	else {
 				this.battle.sides[0].active[0].species = sps;
+				var Pokemon = Pokedex[toId(sps)];
+				var ability = Pokemon.abilities[0];
+				var types = Pokemon.types;
+				console.log('MEGA ABILITY (IN INTERFACELAYER): ' + ability);
+				this.runExternalAddAbility(this.battle.sides[0].active[0], toId(ability));
+				this.battle.sides[0].active[0].types = types;
         	}
+
         }
 
         // -fieldstart refers to pseudoweather as well as terrain.  Because they are processed differently, we have to check whether it is a pseudoweather or a terrain when this line is processed

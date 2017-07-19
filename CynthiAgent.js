@@ -19,11 +19,36 @@ function CynthiAgent() {
 				var Pokemon = gameState.sides[1].pokemon[j];
 				if (!Pokemon.fainted) {
 					var action = 'switch ' + (j+1);
-					options.push(action); //TODO: check if trapped
+					options.push(action);
 				}
 			}
 		}
 		return options;
+	}
+
+	this.round = function(number, decimal) {
+		if (decimal == 2) return Math.round(number*100)/100;
+		else return Math.round(number*10)/10;
+	}
+
+	this.addFakeMove = function (gameState, moveid, oppside) {
+		var move = gameState.getMove(moveid);
+		var pokemon = gameState.sides[oppside].active[0];
+		if (move.id && pokemon.moves.indexOf(move.id)==-1) { //if move not yet revealed
+			pokemon.moves.push(move.id);
+ 			var nMove = {
+				move: move.name,
+				id: move.id,
+				pp: (move.noPPBoosts ? move.pp : move.pp * 8 / 5)-1,
+				maxpp: (move.noPPBoosts ? move.pp : move.pp * 8 / 5),
+				target: move.target,
+				disabled: false,
+				disabledSource: '',
+				used: false,
+			};
+		pokemon.baseMoveset.push(nMove);
+		pokemon.moveset.push(nMove);
+		}
 	}
 
 	this.typeCompare = function (gameState, log) {
@@ -95,12 +120,12 @@ function CynthiAgent() {
             var hpleft = defender.hp;
             if (log) console.log("HP: " + hpleft);
 
-			if (true) { //gameState.sides[0].active[0].moves.length == 4
+			if (gameState.sides[0].active[0].moves.length >= 2) { //gameState.sides[0].active[0].moves.length == 4
 				for (var i = 0; i < gameState.sides[0].active[0].moves.length; i++) {
 					var move = gameState.sides[0].active[0].moves[i]; //this is only a move id
 					//if (log) console.log(gameState.getMove(move));
 
-					if (move.category != 'Status') {
+					if (true) {
 						var damage = gameState.getDamage(attacker, defender, move, null);
 						if (damage > hpleft) {
 							KOMoves.push(move); //store a list of moves that kills
@@ -116,19 +141,20 @@ function CynthiAgent() {
 			}
 			else { //otherwise, check all possible moves. temporarily doesn't work for now. will be revisited
 				for (var i = 0; i < MoveSets[toId(attacker.name)].randomBattleMoves.length; i++) {
-					var move = MoveSets[toId(attacker.name)].randomBattleMoves[i]; //this is only a move id
+					var moveid = MoveSets[toId(attacker.species)].randomBattleMoves[i]; //this is only a move id
+					var move = gameState.getMove(moveid);
 					//if (log) console.log(gameState.getMove(move));
 
 					if (move.category != 'Status') {
 						var damage = gameState.getDamage(attacker, defender, move, null);
 						if (damage > hpleft) {
-							KOMoves.push(move); //store a list of moves that kills
+							KOMoves.push(moveid); //store a list of moves that kills
 						}
 						var strongestMove;
-						if (log) console.log(move + ' ' +damage) //this apparently returns false when immune and when defender dies
+						if (log) console.log(moveid + ' ' +damage) //this apparently returns false when immune and when defender dies
 						if (damage > maxDamage) {
 							maxDamage = damage;
-							strongestMove = move;
+							strongestMove = moveid;
 						}
 					}
 				}
@@ -143,7 +169,7 @@ function CynthiAgent() {
 					var accuracy = gameState.getMove(move).accuracy;
 					if (accuracy > bestAccuracy) {
 						bestAccuracy = accuracy;
-						mostAccurateMove = move;
+						mostAccurateMove = move; //TODO: fireblast appears to be more accurate than aurasphere, needs fix
 					}
 				}
 				if (log) console.log('KO Moves: '+KOMoves);
@@ -176,125 +202,174 @@ function CynthiAgent() {
 		//compare type interaction, but this should play only a small part, because moves are more important
 		//if type is shit but has awesome moves, huge plus!
 		var typeInteraction = this.typeCompare(copiedState);
-		/*
+		var Typescore = 0;
 		if (typeInteraction.botvopp > typeInteraction.oppvbot) {
 			if (typeInteraction.oppvbot != 0) {
-				score += 2*(typeInteraction.botvopp/typeInteraction.oppvbot)
+				score += 2*(typeInteraction.botvopp/typeInteraction.oppvbot);
+				Typescore += 2*(typeInteraction.botvopp/typeInteraction.oppvbot)
 			}
-			else score += 5;
+			else {
+				score += 5;
+				Typescore += 5;
+			}
 		}
 		else if (typeInteraction.botvopp < typeInteraction.oppvbot) {
 			if (typeInteraction.botvopp != 0) {
-				score -= 2*(typeInteraction.oppvbot/typeInteraction.botvopp)
+				score -= 2*(typeInteraction.oppvbot/typeInteraction.botvopp);
+				Typescore -= 2*(typeInteraction.oppvbot/typeInteraction.botvopp);
 			}
-			else score -= 5;
+			else {
+				score -= 5;
+				Typescore -= 5;
+			}
 		}
-		*/
-		//compare hp
+
+		//Compare HP
 		if(true) { //to be removed
+		var HPscore = 0
+		var HPoppscore = 0;
+		var HPbotscore = 0
 		if (newOpp.hp == 0) {
 			score += 20; //if ded lol
-			//score = 'ded';
+			HPscore += 20;
 		}
 		else {
 			var oppHpDiff = oldOpp.hp - newOpp.hp;
-			if (oldOpp.maxhp != 0) score += 20*(oppHpDiff/oldOpp.maxhp); //should compare to maxhp. set!
-			//score = {'Old HP: ': oldOpp.hp, 'New HP: ': newOpp.hp}; //temporary
+			if (oldOpp.maxhp != 0) {
+				score += 20*(oppHpDiff/oldOpp.maxhp); //should compare to maxhp. set!
+				HPscore += 20*(oppHpDiff/oldOpp.maxhp);
+				HPoppscore = 20*(oppHpDiff/oldOpp.maxhp);
+			}
+
 		}
-		if (newOpp.hp == oldOpp.hp) {
-			score -= 4;
+		if (oppHpDiff/oldOpp.maxhp <= 0.1) { //penalize in case opp HP stays relatively the same
+			score -= 11;
+			HPscore -= 11;
+			HPoppscore -= 11;
 		}
 
 		var botHpDiff = oldBot.hp-newBot.hp;
-		if (oldBot.maxhp != 0) score -= 20*(botHpDiff/oldBot.maxhp);
+		if (oldBot.maxhp != 0) {
+			score -= 20*(botHpDiff/oldBot.maxhp);
+			HPscore -= 20*(botHpDiff/oldBot.maxhp)
+			HPbotscore -= 20*(botHpDiff/oldBot.maxhp);
+		}
 		}
 
 		//compare status conditions
-		if (false) {
+		if (true) {
+		var Statscore = 0
 		var oppStatus = newOpp.status;
 		var botStatus = newBot.status;
 		if (oppStatus != oldOpp.status) {
 			if (oppStatus == 'tox') {
 				score += 8;
+				Statscore += 8;
 			}
 			else if (oppStatus == 'brn') {
 				if (newOpp.stats.atk > newOpp.stats.spa) {
 					score += 10;
-					if (newOpp.boosts.atk > 0) score += 5;
+					Statscore += 10;
+					if (newOpp.boosts.atk > 0) {
+						score += 5;
+						Statscore +=5;
+					}
 				}
 				else {
 					score += 7;
+					Statscore += 7;
 				}
 			}
 			else if (oppStatus == 'par') {
 				score += 6;
+				Statscore += 6;
 				if (newOpp.stats.spe > 160) {
 					score += 2;
+					Statscore += 2;
 				}
 				if (newOpp.stats.spe > 200 || newOpp.boosts.spe > 0) {
 					score += 3;
+					Statscore += 3;
 				}
 			}
 			else if (oppStatus == 'slp') {
 				score += 7;
+				Statscore += 7;
 			}
 			else if (oppStatus == 'psn') {
 				score += 6;
+				Statscore += 6;
 			}
 			if (oldOpp.status == 'tox') {
 				score -= 8;
+				Statscore -= 8;
 			}
 			else if (oldOpp.status == 'brn') {
 				score -= 7;
+				Statscore -= 7
 			}
 			else if (oldOpp.status == 'par') {
 				score -= 6;
+				Statscore -= 6;
 			}
 			else if (oldOpp.status == 'slp') {
 				score -= 7;
+				Statscore -= 7;
 			}
 			else if (oldOpp.status == 'psn') {
 				score -= 6;
+				Statscore -= 6;
 			}
 		}
 		if (botStatus != oldBot.status) {
 			if (oldBot.status == 'tox') {
 				score += 10;
+				Statscore += 10;
 			}
 			else if (oldBot.status == 'brn') {
 				score += 8;
+				Statscore += 8;
 			}
 			else if (oldBot.status == 'par') {
 				score += 7;
+				Statscore += 7;
 			}
 			else if (oldBot.status == 'slp') {
 				score += 8;
+				Statscore += 8;
 			}
 			else if (oldBot.status == 'psn') {
 				score += 7;
+				Statscore += 7;
 			}
 			if (botStatus == 'tox') {
 				score -= 10;
+				Statscore -= 10;
 			}
 			else if (botStatus == 'brn') {
 				score -= 8;
+				Statscore -= 8;
 			}
 			else if (botStatus == 'par') {
 				score -= 7;
+				Statscore -= 7;
 			}
 			else if (botStatus == 'slp') {
 				score -= 8;
+				Statscore -=8;
 			}
 			else if (botStatus == 'psn') {
 				score -= 7;
+				Statscore -=7;
 			}
 			else if (botStatus == 'frz') {
 				score -= 7;
+				Statscore -= 7;
 			}
 		}
 		}
 		//compare volatile
-		if (false) {
+		if (true) {
 		if (Object.keys(newOpp.volatiles).length > 0) {
 			score += (5*Object.keys(newOpp.volatiles).length);
 			if (newOpp.volatiles['substitute'] || newOpp.volatiles['perish1']) {
@@ -324,39 +399,55 @@ function CynthiAgent() {
 
 		//compare boosts/unboosts
 		//TODO: must do sth about unboosts when hp is low, because moves like superpower and draco meteor arent used
-		if (false) {
+		if (true) {
+		var Boostscore = 0;
 		var oppBoosts = newOpp.boosts;
 		var botBoosts = newBot.boosts;
 		for (var stat in oppBoosts) {
 			if (oppBoosts[stat] > 0) {
 				var temp = 1;
 				while (temp <= oppBoosts[stat]) {
-					if (temp != 0) score -= 4/temp;
+					if (temp != 0) {
+						score -= 4/temp;
+						Boostscore -= 4/temp;
+					}
 					temp += 1;
 				}
 			}
 			if (oppBoosts[stat] < 0) {
 				var temp = -1;
 				while (temp >= oppBoosts[stat]) {
-					if (temp != 0) score -= 4/temp;
+					if (temp != 0) {
+						score -= 4/temp;
+						Boostscore -= 4/temp;
+					}
 					temp -= 1;
 				}
 			}
-			if (newOpp.boosts[stat] < oldOpp.boosts[stat]) score += 4*(oldOpp.boosts[stat]-newOpp.boosts[stat])
+			if (newOpp.boosts[stat] < oldOpp.boosts[stat]) {
+				score += 4*(oldOpp.boosts[stat]-newOpp.boosts[stat]);
+				Boostscore += 4*(oldOpp.boosts[stat]-newOpp.boosts[stat]);
+			}
 		}
 
 		for (var stat in botBoosts) {
 			if (botBoosts[stat] > 0) {
 				var temp = 1;
 				while (temp <= botBoosts[stat]) {
-					if (temp != 0) score += 5/temp;
+					if (temp != 0) {
+						score += 5/temp;
+						Boostscore += 5/temp;
+					}
 					temp += 1;
 				}
 			}
 			if (botBoosts[stat] < 0) {
 				var temp = -1;
 				while (temp >= botBoosts[stat]) {
-					if (temp != 0) score += 3/temp; //to lower the effects of unboosts
+					if (temp != 0) {
+						score += 3/temp; //to lower the effects of unboosts
+						Boostscore += 3/temp;
+					}
 					temp -= 1;
 				}
 			}
@@ -373,16 +464,19 @@ function CynthiAgent() {
 
 		//weather, terrain
 		//return score;
-		//return {'score': score, 'O : ': oldOpp.hp, 'N : ': newOpp.hp};
-		return {'score': score, 'O': [newOpp.species, typeInteraction.oppvbot], 'B': [newBot.species, typeInteraction.botvopp]};
+		//return {'score': score, 'O : ': oldBot.hp, 'N : ': newBot.hp};
+		//return {'score': score, 'O': [newOpp.species, typeInteraction.oppvbot], 'B': [newBot.species, typeInteraction.botvopp]};
+		return {'score': this.round(score, 2), T: this.round(Typescore), H: this.round(HPscore), S: this.round(Statscore), B: this.round(Boostscore), P: newBot.species};
+		//return {score: this.round(score, 2), HP: this.round(HPscore), O: this.round(HPoppscore), B: this.round(HPbotscore), P: newBot.species};
 	}
 
-	this.minimax = function (gameState, options, level) { //TODO: probably was not simulated coz opp uses a move it doesn't have
+	this.minimax = function (gameState, options, level) {
 		if (options.constructor === Object) { //basically if it is an object, make it an array
 			var options = Object.keys(options);
 		}
 		//choose oppmove
-        this.oppAction(gameState, true); //only for logging
+        if (gameState.sides[1].active[0].hp == 0 && (!gameState.sides[0].active[0].faint)) return;
+        //this.oppAction(gameState, true); //only for logging
 		if (level == 0) {
 			var result = {};
 			//iterate through each option, replicate copiedState choose botmove, minimax again with level-1
@@ -396,7 +490,17 @@ function CynthiAgent() {
                 	var oppaction = this.oppAction(copiedState, true);
                 }
                 else oppaction = this.oppAction(copiedState);
-				copiedState.choose('p1', oppaction);
+				if (oppaction.startsWith('move')) {
+					var moveid = oppaction.split(' ')[1];
+					if (copiedState.sides[0].active[0].moves.indexOf(moveid) == -1) {
+						this.addFakeMove(copiedState, moveid, 0);
+					}
+				}
+
+				if (options[0].startsWith('switch')) {
+					copiedState.choose('p1', 'forceskip');
+				}
+				else copiedState.choose('p1', oppaction);
 				copiedState.choose('p2', action);
 				//console.log('Simulated action: ' + action);
 				//console.log(copiedState.sides[0].active[0].hp + '/' +copiedState.sides[0].active[0].maxhp)
