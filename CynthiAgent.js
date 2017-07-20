@@ -7,16 +7,16 @@ var MoveSets = require('./zarel/data/formats-data.js').BattleFormatsData;
 
 function CynthiAgent() {
 	//working well
-	this.getOptions = function (gameState) { //this function only returns BOT's options
+	this.getOptions = function (gameState, mySID) { //this function only returns BOT's options
 		var options = [];
-		var moves = gameState.sides[1].active[0].moves;
+		var moves = gameState.sides[mySID].active[0].moves;
 		for (var i=0; i < moves.length; i++) { //iterate through moves
 			var action = 'move ' + moves[i];
 			options.push(action);
 		}
-		if (gameState.sides[1] && !(gameState.sides[1].active[0] && gameState.sides[1].active[0].trapped)) {
-			for (var j=1; j < Object.keys(gameState.sides[1].pokemon).length; j++) {
-				var Pokemon = gameState.sides[1].pokemon[j];
+		if (gameState.sides[mySID] && !(gameState.sides[mySID].active[0] && gameState.sides[mySID].active[0].trapped)) {
+			for (var j=1; j < Object.keys(gameState.sides[mySID].pokemon).length; j++) {
+				var Pokemon = gameState.sides[mySID].pokemon[j];
 				if (!Pokemon.fainted) {
 					var action = 'switch ' + (j+1);
 					options.push(action);
@@ -31,9 +31,9 @@ function CynthiAgent() {
 		else return Math.round(number*10)/10;
 	}
 
-	this.addFakeMove = function (gameState, moveid, oppside) {
+	this.addFakeMove = function (gameState, moveid, mySID) { //moves always added to opp
 		var move = gameState.getMove(moveid);
-		var pokemon = gameState.sides[oppside].active[0];
+		var pokemon = gameState.sides[1-mySID].active[0];
 		if (move.id && pokemon.moves.indexOf(move.id)==-1) { //if move not yet revealed
 			pokemon.moves.push(move.id);
  			var nMove = {
@@ -51,10 +51,10 @@ function CynthiAgent() {
 		}
 	}
 
-	this.typeCompare = function (gameState, log) {
-		var opptypes = gameState.sides[0].active[0].types //this is an array of opp type
+	this.typeCompare = function (gameState, mySID, log) {
+		var opptypes = gameState.sides[1-mySID].active[0].types //this is an array of opp type
 		if (log) console.log(opptypes);
-		var bottypes = gameState.sides[1].active[0].types
+		var bottypes = gameState.sides[mySID].active[0].types
 		if (log) console.log(bottypes);
 		var opp_against_bot = 0;
 		var bot_against_opp = 0;
@@ -94,16 +94,16 @@ function CynthiAgent() {
 		return {botvopp: bot_against_opp, oppvbot: opp_against_bot}
 	}
 
-	this.oppAction = function (gameState, log) {
+	this.oppAction = function (gameState, mySID, log) {
 		//main idea: compare typing, see if the opp is likely to switch
 		//need to get the type of pokemon, and need to be able to compare type interactivity
 		//TODO: check last move, basically if previous turn the guy didn't switch as expected, then probably will also stay
 
-		var typeInteraction = this.typeCompare(gameState);
+		var typeInteraction = this.typeCompare(gameState, mySID);
 		var opp_against_bot = typeInteraction.oppvbot;
 		var bot_against_opp = typeInteraction.botvopp;
-		if (log) console.log('OPP AGAINST BOT: ' + gameState.sides[0].active[0].species + ': ' + opp_against_bot);
-		if (log) console.log('BOT AGAINST OPP: ' + gameState.sides[1].active[0].species + ': ' + bot_against_opp);
+		if (log) console.log('OPP AGAINST BOT: ' + gameState.sides[1-mySID].active[0].species + ': ' + opp_against_bot);
+		if (log) console.log('BOT AGAINST OPP: ' + gameState.sides[mySID].active[0].species + ': ' + bot_against_opp);
 		if (log) console.log("\n");
 
 		if (false) { //opp_against_bot < 1 || bot_against_opp > 1
@@ -112,17 +112,17 @@ function CynthiAgent() {
 		else {
 			//likely stay, try to predict move
 			//find function that returns damage
-			//if (log) console.log(gameState.sides[0].active[0].moveset);
+			//if (log) console.log(gameState.sides[1-mySID].active[0].moveset);
 			var KOMoves = []
 			var maxDamage = 0;
-			var attacker = gameState.sides[0].active[0];
-            var defender = gameState.sides[1].active[0];
+			var attacker = gameState.sides[1-mySID].active[0];
+            var defender = gameState.sides[mySID].active[0];
             var hpleft = defender.hp;
             if (log) console.log("HP: " + hpleft);
 
-			if (gameState.sides[0].active[0].moves.length >= 2) { //gameState.sides[0].active[0].moves.length == 4
-				for (var i = 0; i < gameState.sides[0].active[0].moves.length; i++) {
-					var move = gameState.sides[0].active[0].moves[i]; //this is only a move id
+			if (gameState.sides[1-mySID].active[0].moves.length >= 2) { //gameState.sides[1-mySID].active[0].moves.length == 4
+				for (var i = 0; i < gameState.sides[1-mySID].active[0].moves.length; i++) {
+					var move = gameState.sides[1-mySID].active[0].moves[i]; //this is only a move id
 					//if (log) console.log(gameState.getMove(move));
 
 					if (true) {
@@ -184,24 +184,24 @@ function CynthiAgent() {
 		}
 	}
 
-	this.stateScore = function (gameState, copiedState) {
+	this.stateScore = function (gameState, copiedState, mySID) {
 		//(tested) works well for destiny bond and priority moves
 		var score = 0;
-		var oldOpp = gameState.sides[0].active[0];
-		var newOpp = copiedState.sides[0].active[0];
-		var oldBot = gameState.sides[1].active[0];
-		var newBot = copiedState.sides[1].active[0];
+		var oldOpp = gameState.sides[1-mySID].active[0];
+		var newOpp = copiedState.sides[1-mySID].active[0];
+		var oldBot = gameState.sides[mySID].active[0];
+		var newBot = copiedState.sides[mySID].active[0];
 		if (oldBot.species !== newBot.species) {
-			for (var Poke in gameState.sides[1].pokemon) {
-				if (gameState.sides[1].pokemon[Poke].species == newBot.species) {
-					oldBot = gameState.sides[1].pokemon[Poke];
+			for (var Poke in gameState.sides[mySID].pokemon) {
+				if (gameState.sides[mySID].pokemon[Poke].species == newBot.species) {
+					oldBot = gameState.sides[mySID].pokemon[Poke];
 				}
 			}
 		}
 
 		//compare type interaction, but this should play only a small part, because moves are more important
 		//if type is shit but has awesome moves, huge plus!
-		var typeInteraction = this.typeCompare(copiedState);
+		var typeInteraction = this.typeCompare(copiedState, mySID);
 		var Typescore = 0;
 		if (typeInteraction.botvopp > typeInteraction.oppvbot) {
 			if (typeInteraction.oppvbot != 0) {
@@ -242,10 +242,10 @@ function CynthiAgent() {
 			}
 
 		}
-		if (oppHpDiff/oldOpp.maxhp <= 0.1) { //penalize in case opp HP stays relatively the same
-			score -= 11;
-			HPscore -= 11;
-			HPoppscore -= 11;
+		if (oppHpDiff/oldOpp.maxhp <= 0.12) { //penalize in case opp HP stays relatively the same
+			score -= 12;
+			HPscore -= 12;
+			HPoppscore -= 12;
 		}
 
 		var botHpDiff = oldBot.hp-newBot.hp;
@@ -404,6 +404,7 @@ function CynthiAgent() {
 		var oppBoosts = newOpp.boosts;
 		var botBoosts = newBot.boosts;
 		for (var stat in oppBoosts) {
+			if (stat == 'evasion' || stat == 'accuracy') continue;
 			if (oppBoosts[stat] > 0) {
 				var temp = 1;
 				while (temp <= oppBoosts[stat]) {
@@ -431,6 +432,7 @@ function CynthiAgent() {
 		}
 
 		for (var stat in botBoosts) {
+			if (stat == 'evasion' || stat == 'accuracy') continue;
 			if (botBoosts[stat] > 0) {
 				var temp = 1;
 				while (temp <= botBoosts[stat]) {
@@ -470,16 +472,21 @@ function CynthiAgent() {
 		//return {score: this.round(score, 2), HP: this.round(HPscore), O: this.round(HPoppscore), B: this.round(HPbotscore), P: newBot.species};
 	}
 
-	this.minimax = function (gameState, options, level) {
+	this.minimax = function (gameState, options, level, mySID) {
+		var botSide = 'p'+(mySID+1);
+		var oppSide = 'p'+(2-mySID);
+
 		if (options.constructor === Object) { //basically if it is an object, make it an array
 			var options = Object.keys(options);
 		}
-		//choose oppmove
-        if (gameState.sides[1].active[0].hp == 0 && (!gameState.sides[0].active[0].faint)) return;
-        //this.oppAction(gameState, true); //only for logging
+
+        if (gameState.sides[mySID].active[0].hp == 0 && (!gameState.sides[1-mySID].active[0].faint)) return;
+
+        //this.oppAction(gameState, mySID, true); //only for logging
 		if (level == 0) {
 			var result = {};
 			//iterate through each option, replicate copiedState choose botmove, minimax again with level-1
+
 			for (var i=0; i < options.length; i++) {
 				var action = options[i];
 				var copiedState = gameState.copy();
@@ -487,48 +494,78 @@ function CynthiAgent() {
 				copiedState.p1.currentRequest = 'move'; //what is this for? idk what it's for but it's required for the sim to work
                 copiedState.p2.currentRequest = 'move';
                 if (i==0) {
-                	var oppaction = this.oppAction(copiedState, true);
+                	var oppaction = this.oppAction(copiedState, mySID); //register oppaction, this should be (copiedState, true), but 2nd para is removed when depth > 0
                 }
-                else oppaction = this.oppAction(copiedState);
-				if (oppaction.startsWith('move')) {
+                else oppaction = this.oppAction(copiedState, mySID);
+
+				if (oppaction.startsWith('move')) { //predict worst move when less than 2 moves have been revealed
 					var moveid = oppaction.split(' ')[1];
-					if (copiedState.sides[0].active[0].moves.indexOf(moveid) == -1) {
-						this.addFakeMove(copiedState, moveid, 0);
+					if (copiedState.sides[1-mySID].active[0].moves.indexOf(moveid) == -1) {
+						this.addFakeMove(copiedState, moveid, mySID); //add fake move so that sim would work
 					}
 				}
 
-				if (options[0].startsWith('switch')) {
-					copiedState.choose('p1', 'forceskip');
+				if (options[0].startsWith('switch')) { //if all options of bot are switches, then forceskip p1 (coz bot just died duh)
+					copiedState.choose(oppSide, 'forceskip');
 				}
-				else copiedState.choose('p1', oppaction);
-				copiedState.choose('p2', action);
+				else copiedState.choose(oppSide, oppaction);
+				copiedState.choose(botSide, action);
 				//console.log('Simulated action: ' + action);
-				//console.log(copiedState.sides[0].active[0].hp + '/' +copiedState.sides[0].active[0].maxhp)
+				//console.log(copiedState.sides[1-mySID].active[0].hp + '/' +copiedState.sides[1-mySID].active[0].maxhp)
 
-				var score = this.stateScore(gameState, copiedState)
-				result[action] = score;
+				var score = this.stateScore(gameState, copiedState, mySID)
+				result[action] = score; // this is an object with actions as keys with corresponding object returned by statescore
 			}
 			//HOW ABOUT RETURNING AN OBJECT WITH MOVE AND SCORE?
 			return result;
 		}
-		else {
+		else { //TODO: after bot poke dies, switch options apparently only simulate once
+		//TODO: increase score for moves that missed.
+		//TODO: update stats after mega evo;
 			var result = {};
+			console.log(options);
+
 			for (var i=0; i < options.length; i++) {
 				var action = options[i];
         		var copiedState = gameState.copy();
-        		copiedState.choose('p1', this.oppAction(copiedState));
-        		copiedState.choose('p2', action);
-        		var currentscore = this.stateScore(gameState, copiedState)
 
-        		var nextOptions = this.getOptions(gameState);
-        		var future = this.minimax(copiedState, nextOptions, level-1);
-        		var futureScore = 0;
+				copiedState.p1.currentRequest = 'move'; //what is this for? idk what it's for but it's required for the sim to work
+                copiedState.p2.currentRequest = 'move';
+
+                oppaction = this.oppAction(copiedState, mySID)
+				if (oppaction.startsWith('move')) { //predict worst move when less than 2 moves have been revealed
+					var moveid = oppaction.split(' ')[1];
+					if (copiedState.sides[1-mySID].active[0].moves.indexOf(moveid) == -1) {
+						this.addFakeMove(copiedState, moveid, mySID); //add fake move so that sim would work
+					}
+				}
+
+				if (options[0].startsWith('switch')) { //if all options of bot are switches, then forceskip p1 (coz bot just died duh)
+					copiedState.choose(oppSide, 'forceskip');
+				}
+				else copiedState.choose(oppSide, oppaction);
+        		copiedState.choose(botSide, action);
+
+        		var currentscore = this.stateScore(gameState, copiedState, mySID)
+
+        		var nextOptions = this.getOptions(copiedState, mySID); //what? shouldn't it be copiedState?
+        		var future = this.minimax(copiedState, nextOptions, level-1, mySID);
+        		//console.log(future);
+        		var futureBestScore = -10000; //-infinity
         		for (var key in future) {
-        			futureScore += future[key];
+        			if (future[key].score > futureBestScore) {
+        				//console.log(future[key]);
+        				futureBestScore = future[key].score;
+        			}
         		}
-
-        		result[action] = currentscore + futureScore;
+        		console.log("Current Score: "+ currentscore.score + ', ' + action);
+				console.log("Future Best Score: " +futureBestScore);
+        		if (futureBestScore != -10000) {
+					currentscore.score += futureBestScore; //basically for each action on this level, score will be incremented by next level's best node's score
+				}
+        		result[action] = currentscore;
             }
+            console.log('Depth: ' + level);
             return result;
 		}
 	}
@@ -545,7 +582,7 @@ function CynthiAgent() {
     	//local simulation will take place and copiedState will be modified accordingly, that is why we use copiedState
     	//instead of gameState since we don't want gameState to be modified by our simulation.
 
-    	//at any simulated state, use this.getOptions(state, mySide.id) to get an array of feasible options
+    	//at any simulated state, use this.getOptions(state, mySID) to get an array of feasible options
     	//options has the form of "move blabla" or "switch number". message sent will be |\choose move blabbla or |\choose switch 3
 
     	//servcom.js will call this decide function and it will send final choice to server as the bot's decision
@@ -558,8 +595,9 @@ function CynthiAgent() {
     	copiedState.p1.currentRequest = 'move'; //what is this for? idk what it's for but it's required for the sim to work
 		copiedState.p2.currentRequest = 'move';
 
-		if (options && copiedState.sides[0].active[0] && copiedState.sides[1].active[0]) {
-			var results = this.minimax(copiedState, options, 0); //basically print out scores.
+		this.oppAction(gameState, this.mySID, true);
+		if (options && copiedState.sides[1-this.mySID].active[0] && copiedState.sides[this.mySID].active[0]) {
+			var results = this.minimax(copiedState, options, 1, this.mySID); //MINIMAX
 			console.log('\n');
 			console.log(results); //an Object
 			console.log('\n');
@@ -568,7 +606,7 @@ function CynthiAgent() {
 			var bestScoreAction = [];
 			for (var action in results) {
 				if (action == 'move protect' || action == 'move destinybond') {
-					if (gameState.sides[1].active[0].lastMove == 'protect' || gameState.sides[1].active[0].lastMove == 'destinybond') {
+					if (gameState.sides[this.mySID].active[0].lastMove == 'protect' || gameState.sides[this.mySID].active[0].lastMove == 'destinybond') {
 						results[action].score -= 7;
 					}
 				}
@@ -586,8 +624,8 @@ function CynthiAgent() {
 				var strongestMove;
 				var bestDamage = 0;
 				var KOMoves = [];
-				var attacker = gameState.sides[1].active[0];
-				var defender = gameState.sides[0].active[0];
+				var attacker = gameState.sides[this.mySID].active[0];
+				var defender = gameState.sides[1-this.mySID].active[0];
 				var hpleft = defender.hp;
 				for (var i=0; i < bestScoreAction.length; i++) { //iterate through best scored ones
 					if (bestScoreAction[i].startsWith('move')) { //only choose moves, ignore switches
@@ -621,34 +659,25 @@ function CynthiAgent() {
                 }
                 else return bestScoreAction[0];
 			}
-			/*
-			var firstchoice = Object.keys(options)[0];
-			console.log(firstchoice);
-			if (firstchoice) { //added condition coz run into bug when using outrage, probably because of locked move
-				copiedState.choose(botSide, firstchoice);
-				copiedState.choose('p1', 'forceskip');
-			}
-			*/
-
 		}
 
 		//JUST LOGGGING STUFF
-		if (copiedState.sides[0].active[0]) {
-			//this.oppAction(gameState);
-			console.log(copiedState.sides[0].active[0]);
-			//console.log(copiedState.sides[0].active[0].hp + '/' +copiedState.sides[0].active[0].maxhp);
-			//console.log(gameState.sides[0].active[0].moveset);
-			//if (gameState.sides[0].active[0].moveset[0]) console.log(gameState.getMove(gameState.sides[0].active[0].moveset[0].id));
-			//this.oppAction (gameState, true);
+		if (copiedState.sides[1-this.mySID].active[0]) {
+			//this.oppAction(gameState, mySID);
+			console.log(copiedState.sides[1-this.mySID].active[0]);
+			//console.log(copiedState.sides[1-this.mySID].active[0].hp + '/' +copiedState.sides[1-this.mySID].active[0].maxhp);
+			//console.log(gameState.sides[1-this.mySID].active[0].moveset);
+			//if (gameState.sides[1-this.mySID].active[0].moveset[0]) console.log(gameState.getMove(gameState.sides[1-this.mySID].active[0].moveset[0].id));
+			//this.oppAction (gameState, mySID, true);
 		}
-		if (gameState.sides[1].active[0]) {
-			//console.log(this.getOptions(gameState));
-			//console.log(gameState.sides[0].active[0]);
-        	//console.log(gameState.sides[1].active[0].moves);
-        	//console.log(gameState.sides[0].active[0].moveset); //important: contains pp
-        	//console.log(Object.keys(gameState.sides[1].pokemon).length);
-			//console.log(gameState.sides[1].pokemon[0].fainted);
-        	//console.log(copiedState.sides[0].active[0].hp + '/' +copiedState.sides[0].active[0].maxhp);
+		if (gameState.sides[this.mySID].active[0]) {
+			//console.log(this.getOptions(gameState, mySID));
+			//console.log(gameState.sides[1-this.mySID].active[0]);
+        	//console.log(gameState.sides[this.mySID].active[0].moves);
+        	//console.log(gameState.sides[1-this.mySID].active[0].moveset); //important: contains pp
+        	//console.log(Object.keys(gameState.sides[this.mySID].pokemon).length);
+			//console.log(gameState.sides[this.mySID].pokemon[0].fainted);
+        	//console.log(copiedState.sides[1-this.mySID].active[0].hp + '/' +copiedState.sides[1-this.mySID].active[0].maxhp);
         }
 
     }

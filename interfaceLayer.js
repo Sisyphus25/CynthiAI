@@ -575,18 +575,19 @@ class InterfaceLayer {
             }
         }
         else if (tag == '-sethp') {
+        	var oppSide = 'p'+(2-this.mySID);
         	for (var i=2; i < arr.length; i++) {
-        		if (arr[i].startsWith('p1a')) { //opp
+        		if (arr[i].startsWith(oppSide)) { //opp
         			var infoarr = arr[i+1].split(' ');
 					var numerator = infoarr[0].split('/')[0];
 					var denominator = infoarr[0].split('/')[1];
-					this.battle.sides[0].active[0].hp = (numerator/denominator)*this.battle.sides[0].active[0].maxhp;
+					this.battle.sides[1-this.mySID].active[0].hp = (numerator/denominator)*this.battle.sides[1-this.mySID].active[0].maxhp;
         		}
-        		else if (arr[i].startsWith('p2a')) { //bot
+        		else if (arr[i].startsWith(this.mySide)) { //bot
          			var infoarr = arr[i+1].split(' ');
  					var numerator = infoarr[0].split('/')[0];
  					var denominator = infoarr[0].split('/')[1];
-                    this.battle.sides[1].active[0].hp = numerator;
+                    this.battle.sides[this.mySID].active[0].hp = numerator;
         		}
         	}
         }
@@ -833,16 +834,16 @@ class InterfaceLayer {
         else if (tag == 'detailschange') {
         	var sps = arr[3].split(', ')[0];
         	if (arr[2].startsWith(this.mySide)) { //p2
-        		this.battle.sides[1].active[0].species = sps;
+        		this.battle.sides[this.mySID].active[0].species = sps;
         	}
         	else {
-				this.battle.sides[0].active[0].species = sps;
+				this.battle.sides[1-this.mySID].active[0].species = sps;
 				var Pokemon = Pokedex[toId(sps)];
 				var ability = Pokemon.abilities[0];
 				var types = Pokemon.types;
 				console.log('MEGA ABILITY (IN INTERFACELAYER): ' + ability);
-				this.runExternalAddAbility(this.battle.sides[0].active[0], toId(ability));
-				this.battle.sides[0].active[0].types = types;
+				this.runExternalAddAbility(this.battle.sides[1-this.mySID].active[0], toId(ability));
+				this.battle.sides[1-this.mySID].active[0].types = types;
         	}
 
         }
