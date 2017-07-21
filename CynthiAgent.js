@@ -94,7 +94,7 @@ function CynthiAgent() {
 		return {botvopp: bot_against_opp, oppvbot: opp_against_bot}
 	}
 
-	this.oppAction = function (gameState, mySID, log) {
+	this.oppAction = function (gameState, mySID, log) { //TODO: doesn't work when there is choice band/scarf/specs
 		//main idea: compare typing, see if the opp is likely to switch
 		//need to get the type of pokemon, and need to be able to compare type interactivity
 		//TODO: check last move, basically if previous turn the guy didn't switch as expected, then probably will also stay
@@ -243,9 +243,9 @@ function CynthiAgent() {
 
 		}
 		if (oppHpDiff/oldOpp.maxhp <= 0.12) { //penalize in case opp HP stays relatively the same
-			score -= 12;
-			HPscore -= 12;
-			HPoppscore -= 12;
+			score -= 7;
+			HPscore -= 7;
+			HPoppscore -= 7;
 		}
 
 		var botHpDiff = oldBot.hp-newBot.hp;
@@ -388,7 +388,7 @@ function CynthiAgent() {
 		if (Object.keys(newBot.volatiles).length > 0) {
         	score -= (5*Object.keys(newBot.volatiles).length);
         	if (newBot.volatiles['substitute']) {
-            	score += 13;
+            	score += 10;
             }
             if (newBot.volatiles['encore'] && copiedState.getMove(newBot.lastMove).category == 'Status') {
             	score -= 15;
@@ -462,13 +462,45 @@ function CynthiAgent() {
 		//perhaps don't need, coz simulation already handles this
 
 		//field hazards/conditions (maybe use when not threatened)
+		if (gameState.sides[mySID].sideConditions) {
+			if (gameState.sides[mySID].sideConditions['stealthrock']) {
+				score -= 4*(Object.keys(gameState.sides[mySID].pokemon).length);
+			}
+			if (gameState.sides[mySID].sideConditions['stickyweb']) {
+				score -= 3*(Object.keys(gameState.sides[mySID].pokemon).length);
+			}
+			if (gameState.sides[mySID].sideConditions['spikes']) {
+				var layers = gameState.sides[mySID].sideConditions['spikes'].layers;
+				score -= 2*(Object.keys(gameState.sides[mySID].pokemon).length)*layers;
+			}
+			if (gameState.sides[mySID].sideConditions['toxicspikes']) {
+				var layers = gameState.sides[mySID].sideConditions['toxicspikes'].layers;
+				score -= 2*(Object.keys(gameState.sides[mySID].pokemon).length)*layers;
+			}
+		}
+		if (gameState.sides[1-mySID].sideConditions) {
+			if (gameState.sides[1-mySID].sideConditions['stealthrock']) {
+				score += 4*(Object.keys(gameState.sides[1-mySID].pokemon).length);
+			}
+			if (gameState.sides[1-mySID].sideConditions['stickyweb']) {
+				score += 3*(Object.keys(gameState.sides[1-mySID].pokemon).length);
+			}
+			if (gameState.sides[1-mySID].sideConditions['spikes']) {
+				var layers = gameState.sides[1-mySID].sideConditions['spikes'].layers;
+				score += 2*(Object.keys(gameState.sides[1-mySID].pokemon).length)*layers;
+			}
+			if (gameState.sides[1-mySID].sideConditions['toxspikes']) {
+				var layers = gameState.sides[1-mySID].sideConditions['toxicspikes'].layers;
+				score += 2*(Object.keys(gameState.sides[1-mySID].pokemon).length)*layers;
+			}
+		}
 		//lightscreen reflect? probably compare atl and spatk stats
 
 		//weather, terrain
 		//return score;
 		//return {'score': score, 'O : ': oldBot.hp, 'N : ': newBot.hp};
 		//return {'score': score, 'O': [newOpp.species, typeInteraction.oppvbot], 'B': [newBot.species, typeInteraction.botvopp]};
-		return {'score': this.round(score, 2), T: this.round(Typescore), H: this.round(HPscore), S: this.round(Statscore), B: this.round(Boostscore), P: newBot.species};
+		return {'score': this.round(score, 2), H: this.round(HPscore), S: this.round(Statscore), B: this.round(Boostscore), P: newBot.species};
 		//return {score: this.round(score, 2), HP: this.round(HPscore), O: this.round(HPoppscore), B: this.round(HPbotscore), P: newBot.species};
 	}
 
@@ -516,7 +548,10 @@ function CynthiAgent() {
 				var score = this.stateScore(gameState, copiedState, mySID)
 				result[action] = score; // this is an object with actions as keys with corresponding object returned by statescore
 			}
-			//HOW ABOUT RETURNING AN OBJECT WITH MOVE AND SCORE?
+            //discourage switches //TODO: add condition that the active is not sleeping
+            for (var key in result) {
+            	if (key.startsWith('switch')) result[key].score -= 10;
+            }
 			return result;
 		}
 		else { //TODO: after bot poke dies, switch options apparently only simulate once
@@ -559,13 +594,19 @@ function CynthiAgent() {
         			}
         		}
         		console.log("Current Score: "+ currentscore.score + ', ' + action);
-				console.log("Future Best Score: " +futureBestScore);
+				console.log("Future Score: ");
+				console.log(future);
         		if (futureBestScore != -10000) {
 					currentscore.score += futureBestScore; //basically for each action on this level, score will be incremented by next level's best node's score
 				}
         		result[action] = currentscore;
             }
             console.log('Depth: ' + level);
+
+            //discourage switches
+            for (var key in result) {
+            	if (key.startsWith('switch')) result[key].score -= 10;
+            }
             return result;
 		}
 	}
@@ -619,7 +660,13 @@ function CynthiAgent() {
 					bestScoreAction.push(action);
 				}
 			}
-			if (bestScoreAction.length == 1) return bestScoreAction[0];
+			if (bestScoreAction.length == 1) {
+				if (gameState.sides[this.mySID].active[0].canMegaEvo && bestScoreAction[0].startsWith('move')) {
+					gameState.sides[this.mySID].active[0].canMegaEvo = false;
+					return bestScoreAction[0]+ ' mega';
+				}
+				else return bestScoreAction[0];
+			}
 			else { //TODO: consider accuracy; also when there is more than one best score, go to strongestmove
 				var strongestMove;
 				var bestDamage = 0;
@@ -652,12 +699,23 @@ function CynthiAgent() {
                 			mostAccurateMove = move;
                 		}
                 	}
-                	return 'move ' + mostAccurateMove;
+                	if (gameState.sides[this.mySID].active[0].canMegaEvo) {
+                		gameState.sides[this.mySID].active[0].canMegaEvo = false;
+                		return 'move ' + mostAccurateMove + ' mega'
+                	}
+                	else return 'move ' + mostAccurateMove;
                 }
                 else if (strongestMove) {
-                	return 'move ' + strongestMove;
+                	if (gameState.sides[this.mySID].active[0].canMegaEvo) {
+                		gameState.sides[this.mySID].active[0].canMegaEvo = false;
+                		return 'move ' + strongestMove + ' mega'
+                	}
+                	else return 'move ' + strongestMove;
                 }
-                else return bestScoreAction[0];
+                else {
+                	if (gameState.sides[this.mySID].active[0].canMegaEvo && bestScoreAction[0].startsWith('move')) return bestScoreAction[0]+' mega';
+                	else return bestScoreAction[0];
+                }
 			}
 		}
 
@@ -682,7 +740,8 @@ function CynthiAgent() {
 
     }
 
-    this.assumePokemon = function (pname, plevel, pgender, side) {
+    this.assumePokemon = function (pname, plevel, pgender, side) { //maybe add heuristics to predict certain poke's ability, item
+    	//TODO: need to start with species instead of name
         var nSet = {
             species: pname,
             name: pname,
