@@ -462,10 +462,9 @@ function CynthiAgent() {
 		//perhaps don't need, coz simulation already handles this
 
 		//field hazards/conditions (maybe use when not threatened)
-<<<<<<< HEAD
 		/**
-=======
->>>>>>> 4819ae0ba7ab018a38eebc866212ee2a8df3ea10
+
+
 		if (gameState.sides[mySID].sideConditions) {
 			if (gameState.sides[mySID].sideConditions['stealthrock']) {
 				score -= 4*(Object.keys(gameState.sides[mySID].pokemon).length);
@@ -498,10 +497,8 @@ function CynthiAgent() {
 				score += 2*(Object.keys(gameState.sides[1-mySID].pokemon).length)*layers;
 			}
 		}
-<<<<<<< HEAD
 		**/
-=======
->>>>>>> 4819ae0ba7ab018a38eebc866212ee2a8df3ea10
+
 		//lightscreen reflect? probably compare atl and spatk stats
 
 		//weather, terrain
