@@ -1,5 +1,5 @@
 ﻿'use strict';
-
+var Pokedex = require('./zarel/data/pokedex.js').BattlePokedex;
 /*
 	This file is used for handling communication between each agent (bot) and server
 	Information regarding battle logs will be collected and processed
@@ -145,14 +145,15 @@ class InterfaceLayer {
 
     }
 
-    runExternalAddMove(pokemon, move) {
-        move = this.battle.getMove(toId(move));
-        if (move.id && pokemon.moves.indexOf(move) == -1) {
+    runExternalAddMove(pokemon, movename) {
+    	var moveid = toId(movename);
+        var move = this.battle.getMove(moveid);
+        if (move.id && pokemon.moves.indexOf(move.id)==-1) { //if move not yet revealed
             pokemon.moves.push(move.id);
             var nMove = {
                 move: move.name,
                 id: move.id,
-                pp: (move.noPPBoosts ? move.pp : move.pp * 8 / 5),
+                pp: (move.noPPBoosts ? move.pp : move.pp * 8 / 5)-1,
                 maxpp: (move.noPPBoosts ? move.pp : move.pp * 8 / 5),
                 target: move.target,
                 disabled: false,
@@ -161,6 +162,14 @@ class InterfaceLayer {
             };
             pokemon.baseMoveset.push(nMove);
             pokemon.moveset.push(nMove);
+        }
+        else { //move already revealed
+        	//update pp
+        	for (var i = 0; i < pokemon.moveset.length; i++) {
+        		if (move.id == pokemon.moveset[i].id) {
+					pokemon.moveset[i].pp -= 1
+        		} //TODO: consider pressure
+        	}
         }
     }
 
@@ -231,7 +240,8 @@ class InterfaceLayer {
         if (status.durationCallback) {
             pokemon.volatiles[status.id].duration = status.durationCallback.call(this.battle, pokemon);
         }
-        result = this.battle.singleEvent('Start', status, pokemon.volatiles[status.id], pokemon);
+
+        result = this.battle.singleEvent('Start', status, pokemon.volatiles[status.id], pokemon); //TODO: cursedbody bug here
         if (!result) {
             // cancel
             delete pokemon.volatiles[status.id];
@@ -312,16 +322,16 @@ class InterfaceLayer {
                 this.battle.sides[1 - this.mySID].pokemonLeft = this.battle.sides[this.mySID].pokemonLeft;
 
             }
-            this.cTurnOptions = {}; //current turn's options, basically check available moves (not disabled and pp > 0, can also be switch options
+            this.cTurnOptions = {}; //current turn's options, basically check available moves (not disabled and pp > 0), can also be switch options
             this.cTurnMoves = {}; // current turn's move options
             if (requestData['active']) { //if has active pokemon
                 for (var i = 0; i < requestData['active'][0]['moves'].length; i++) { //iterate through moveset
                     if (requestData['active'][0]['moves'][i]['disabled'] == false && requestData['active'][0]['moves'][i].pp > 0) { //if not disabled and pp > 0
-                        this.cTurnOptions['move ' + requestData['active'][0]['moves'][i].id] = requestData['active'][0]['moves'][i];
-                        this.cTurnMoves['move ' + requestData['active'][0]['moves'][i].id] = requestData['active'][0]['moves'][i];
+                        this.cTurnOptions['move ' + requestData['active'][0]['moves'][i].id] = requestData['active'][0]['moves'][i]; //add each move to cTurnOptions
+                        this.cTurnMoves['move ' + requestData['active'][0]['moves'][i].id] = requestData['active'][0]['moves'][i]; //add each move to cTurnMoves
 
                         if (this.battle.sides[this.mySID].active[0]) { // if active mon has moves
-                            for (var j = 0; j < this.battle.sides[this.mySID].active[0].moveset.length; j++) {
+                            for (var j = 0; j < this.battle.sides[this.mySID].active[0].moveset.length; j++) { //iterate through moveset
                                 if (requestData['active'][0]['moves'][i].id == this.battle.sides[this.mySID].active[0].moveset[j].id) {
                                     this.battle.sides[this.mySID].active[0].moveset[j].pp = requestData['active'][0]['moves'][i].pp; //update pp in moveset, but weird tho
                                 }
@@ -334,6 +344,7 @@ class InterfaceLayer {
                 // Basically, if we switch to zoroark, the request data will reflect it, but the switch event data will not.
                 // Therefore, if a switch event happens on this turn, we override the swapped pokemon with zoroark
                 this.zoroarkActive = requestData['side']['pokemon'][0].details.startsWith('Zoroark');
+
                 for (var i = 1; i < requestData['side']['pokemon'].length; i++) { //iterate through pokemon list
                     if (requestData['side']['pokemon'][i].condition.indexOf('fnt') == -1) { //if pokemon not faint
                         this.cTurnOptions['switch ' + (i + 1)] = requestData['side']['pokemon'][i]; //add switch option
@@ -386,7 +397,7 @@ class InterfaceLayer {
                 }
                 //otherwise it is a new pokemon, thus not found
                 if (!found) {
-                    var pLev = 100;
+                    var pLev = 81;
                     var pGen = '';
                     if (pInfo[1]) {
                         if (pInfo[1].startsWith(' L')) { //update level
@@ -441,7 +452,7 @@ class InterfaceLayer {
                         side.sideConditions[status].stage++;
                     }
                 }
-                var pokemon = this.battle.sides[sideid].active[0]; //TODO: buggy?
+                var pokemon = this.battle.sides[sideid].active[0];
                 if (pokemon.statusData.duration) {
                     pokemon.statusData.duration--;
                 }
@@ -506,6 +517,7 @@ class InterfaceLayer {
             // Should also update lastmoveused
             // if arr[4] has [from] lockedmove and the user has the volatile twoturnmove, then we have to remove the volatile
             // fs.appendFile('log.txt', line + '\n', function (err) { });
+
             var sindex = parseInt(arr[2].substring(1)) - 1; //side index: 0 or 1
             if (arr[5] && arr[5] == '[from]lockedmove') {
                 console.log(line);
@@ -525,8 +537,9 @@ class InterfaceLayer {
             //console.log(copied.sides[this.mySID]); //working. successfully cloned
             //console.log("THE ABOVE IS A CLONE");
         }
+
         // -damage Update model.  Change only opponent health to the fraction given.  Format: tag, pokemon, status (num/den status), maybe from
-        else if (tag == '-damage' || tag == '-heal') {
+        else if (tag == '-damage' || tag == '-heal') { //TODO: update life orb
             if (arr[2].startsWith(this.mySide)) {
                 var info = arr[3];
                 var infoarr = info.split(' ');
@@ -549,7 +562,51 @@ class InterfaceLayer {
                 if (infoarr[1]) {
                     this.runExternalStatus(this.battle.sides[1 - this.mySID].active[0], infoarr[1]);
                 }
+                if (arr[4]){
+					if (arr[4].startsWith('[from] ability')) { //for waterabsorb/voltabsorb
+						var ability = arr[4].split(': ')[1];
+						this.runExternalAddAbility(this.battle.sides[1-this.mySID].active[0], toId(ability));
+					}
+					if (arr[4].startsWith('[from] item')) { //for leftovers, life orb..
+						var item = arr[4].split(': ')[1];
+						this.runExternalAddItem(this.battle.sides[1-this.mySID].active[0], toId(item));
+					}
+                }
             }
+        }
+        else if (tag == '-sethp') {
+        	var oppSide = 'p'+(2-this.mySID);
+        	for (var i=2; i < arr.length; i++) {
+        		if (arr[i].startsWith(oppSide)) { //opp
+        			var infoarr = arr[i+1].split(' ');
+					var numerator = infoarr[0].split('/')[0];
+					var denominator = infoarr[0].split('/')[1];
+					this.battle.sides[1-this.mySID].active[0].hp = (numerator/denominator)*this.battle.sides[1-this.mySID].active[0].maxhp;
+        		}
+        		else if (arr[i].startsWith(this.mySide)) { //bot
+         			var infoarr = arr[i+1].split(' ');
+ 					var numerator = infoarr[0].split('/')[0];
+ 					var denominator = infoarr[0].split('/')[1];
+                    this.battle.sides[this.mySID].active[0].hp = numerator;
+        		}
+        	}
+        }
+        else if (tag == '-immune') {
+        	if (!arr[2].startsWith(this.mySide)) { //to handle water absorb/ volt absorb ability of opp
+        		if (arr[4] && arr[4].startsWith('[from] ability')) {
+        			var ability = arr[4].split(': ')[1];
+        			this.runExternalAddAbility(this.battle.sides[1-this.mySID].active[0], toId(ability));
+        		}
+        	}
+        }
+        else if (tag == 'faint') {
+        	var side = arr[2].split(' ')[0];
+			if (side.startsWith(this.mySide)) {
+				this.battle.sides[this.mySID].active[0].hp = 0;
+			}
+			else {
+				this.battle.sides[1-this.mySID].active[0].hp = 0;
+			}
         }
         // -weather  Update model.  Can be upkeep (just up the turn counter).  Second value becomes 'none' upon ending
         else if (tag == '-weather') {
@@ -773,7 +830,23 @@ class InterfaceLayer {
             this.battle.sides[sindex].active[0].setBoost(boosts);
         }
         // -detailschange is irrelevant here.  No ubers means no primal means no detailchanges
-        //TODO: detailschange
+        //TODO: detailschange change the species and update ablity and update type, perhaps change item to megastone
+        else if (tag == 'detailschange') {
+        	var sps = arr[3].split(', ')[0];
+        	if (arr[2].startsWith(this.mySide)) { //p2
+        		this.battle.sides[this.mySID].active[0].species = sps;
+        	}
+        	else {
+				this.battle.sides[1-this.mySID].active[0].species = sps;
+				var Pokemon = Pokedex[toId(sps)];
+				var ability = Pokemon.abilities[0];
+				var types = Pokemon.types;
+				console.log('MEGA ABILITY (IN INTERFACELAYER): ' + ability);
+				this.runExternalAddAbility(this.battle.sides[1-this.mySID].active[0], toId(ability));
+				this.battle.sides[1-this.mySID].active[0].types = types;
+        	}
+
+        }
 
         // -fieldstart refers to pseudoweather as well as terrain.  Because they are processed differently, we have to check whether it is a pseudoweather or a terrain when this line is processed
         else if (tag == '-fieldstart') {

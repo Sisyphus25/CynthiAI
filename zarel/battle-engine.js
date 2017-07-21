@@ -400,7 +400,7 @@ class BattlePokemon {
 				// If a targeted foe faints, the move is retargeted
 				target = this.battle.resolveTarget(this, move);
 			}
-			if (target.side.active.length > 1) {
+			if (target.side && target.side.active.length > 1) {
 				if (!move.flags['charge'] || this.volatiles['twoturnmove'] ||
 						(move.id === 'solarbeam' && this.battle.isWeather(['sunnyday', 'desolateland'])) ||
 						(this.hasItem('powerherb') && move.id !== 'skydrop')) {
@@ -2511,7 +2511,7 @@ let Battle = (() => {
 			throw new Error("Stack overflow");
 		}
 		//this.add('Event: ' + eventid + ' (depth ' + this.eventDepth + ')');
-		effect = this.getEffect(effect);
+		effect = this.getEffect(effect); //TODO: maybe bug here??????
 		let hasRelayVar = true;
 		if (relayVar === undefined) {
 			relayVar = true;
@@ -2547,7 +2547,7 @@ let Battle = (() => {
 		if (hasRelayVar) args.unshift(relayVar);
 		let returnVal;
 		if (typeof effect['on' + eventid] === 'function') {
-			returnVal = effect['on' + eventid].apply(this, args);
+			returnVal = effect['on' + eventid].apply(this, args); //TODO: bug here at apply
 		} else {
 			returnVal = effect['on' + eventid];
 		}

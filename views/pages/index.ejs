@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<% include ../partials/head %>
+    <meta charset="utf-8">
+  	<meta name="viewport" content="width=device-width, initial-scale=1">
+  	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  	<link rel="stylesheet" type="text/css" href="/style.css">
+    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet" type="text/css">
+	<link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css">
+
+</head>
+
+<body id="myPage" data-spy="scroll" data-target=".navbar" data-offset="50">
+	<header>
+		<% include ../partials/header %>
+	</header>
+	<main>
+		<img src="/battle.png" class="battle-image" alt="Battle" >
+		<div class="bg-1" id="home">
+  			<div class="container">
+    			<h2 class="text-center">CYNTHIAI</h2>
+    			<p class="text-center"><em>A Pokemon Showdown AI</em></p>
+    			<p class="text-center">Built for Project Orbital</p> 			
+ 			</div>
+		</div>
+		<div class="container" id="instruction">
+  			<h3 class="text-center">INSTRUCTIONS</h3>
+  			<div class="row middle-align">
+  			<div class="col-sm-8">
+  			<ul>
+  				<li>Make sure you are online on the showdown server with a registered Showdown ID</li>
+  				<li>Enter your userID, password and pick the the battle format</li>
+  				<li>Click Login and wait for the bot to log in to the server with the ID you have prepared</li>
+  				<li>Click Send Challenge Request to have the bot initiate the battle</li>
+  				<li>If you want start another battle, just click Send Challenge Request again. If you want the bot to log in with another ID, enter the new ID and click login. Take note that logging in with a new ID would result in the bot logging out from the previous ID you enter immediately.</li>
+  				<br>
+  			</ul>
+  			</div>
+  			</div>
+		</div>		
+		<div class="bg-1 text-center" id="battle">
+		 	<div class="container">
+  			<h3>CHALLENGE THE AI</h3>
+			<p>Input your ID, preferred battle format and custom team</p>
+			<br>
+			<div id ="confirmform">
+				<form class="form-inline form-group" >
+					<div class="well">
+					<label for="ID">Your UserID</label><br>
+					<input type="userID" class="form-control" id="userID" name="userID" required><br>
+					<label for="ID">Your Password</label><br>
+					<input type="password" class="form-control" id="password" name="password" required><br>
+					<label for="format">Battle Format</label><br>
+					<select id="battleformat" name="battleformat">
+						<option value="gen7randombattle">Random Battle</option>
+						<option value="gen7unratedrandombattle">Unrated Random Battle</option>
+					</select><br><br>
+					<button id="confirminput" type="submit" data-loading-text="<i class='fa fa-spinner fa-spin '></i> Logging In">Login</button>
+					</div>
+	  			</form>
+	  		</div>
+			<div class="alert alert-warning hidden" id="myalert" role= "alert">
+  				Please login first before asking the bot to send a request for random battle.
+			</div>
+			<button id="startbattle" class="btn btn-lg">Send challenge request</button>
+			</div>
+		</div>
+
+		<div id="about">
+  			<div class="container">
+    			<h3 class="text-center">ABOUT</h3>
+    			<div class="row middle-align justified">
+    			<div class="col-sm-8">
+    			<p>Pokemonshowdown.com is a platform that hosts a game simulator for online players to battle against each other using a team of 6 Pokemon. Each Pokemon have unique combination of attacking/non-attacking moves, held item, ability, typing and stats, which makes the game so versatile and thus rendering strategizing difficult. 
+    			</p>
+    			<p>Hence the birth of CynthiAI, our showdown bot built to be capable of strategizing as well as making appropriate moves by itself. The bot was written in nodejs and make use of expectimimax algorithm.</p>
+    			</div>
+    			</div>
+    			<br>
+    			<div class="row middle-align text-center">
+    				<div class="col-sm-3">
+      					<p><strong>Minh Dang</strong></p><br>
+      					<img src="/minhdang.jpg" class="img-circle person" alt="Minh Dang">
+      					<p><em>NUS Year 2 Student</em></p>
+      					<p>Mathematics Major, FoS</p>
+    				</div>
+    				<div class="col-sm-3">
+      					<p><strong>Phuong Thao</strong></p><br>
+      					<img src="/phuongthao.jpg" class="img-circle person" alt="Phuong Thao">
+      					<p><em>NUS Year 2 Student</em></p>
+      					<p>Infomation System, SoC</p>
+    				</div>
+  				</div>
+  			</div>
+		</div>
+
+	</main>
+	<footer>
+		<% include ../partials/footer %>
+	</footer>	
+	<script>
+		$("#confirminput").click(function(event) {
+            event.preventDefault();
+            var data = {};
+            data.userID = $('#userID').val();
+            data.password = $('#password').val();
+            data.battleformat = $('#battleformat').val();           
+            $.ajax({
+                type: 'POST',
+                url: '/confirminput',
+                data: data,
+                dataType: 'application/json',
+                success: function(data) {
+                    console.log('success');
+                }
+            });        
+        });
+
+		$('#confirminput').on('click', function() {
+		    var $this = $(this);
+		  	$this.button('loading');
+		    setTimeout(function() {
+		       $this.button('reset');
+		   	}, 5000);
+		});
+
+		var receiveInput = false;
+		$('#startbattle').click(function(){
+	    	if (receiveInput == false && $("#myalert").is(".hidden")) {
+	    		$("#myalert").toggleClass("hidden");
+	    	}
+	    	else {
+	    		$.ajax({url: '/startbattle'});
+	    	}
+		});
+		
+		$('#confirminput').click(function(){
+			if (!($("#myalert").is(".hidden"))) {
+	    		$("#myalert").toggleClass("hidden");
+	    	}
+			receiveInput = true;
+		});
+		
+		//Smooth Scrolling
+		$(document).ready(function(){
+  			// Add smooth scrolling to all links in navbar + footer link
+  			$(".navbar a, footer a[href='#myPage']").on('click', function(event) {
+
+  			// Make sure this.hash has a value before overriding default behavior
+  			if (this.hash !== "") {
+			    // Prevent default anchor click behavior
+			    event.preventDefault();
+			    // Store hash
+			    var hash = this.hash;
+			    // Using jQuery's animate() method to add smooth page scroll
+			    // The optional number (900) specifies the number of milliseconds it takes to scroll to the specified area
+			    $('html, body').animate({
+			      scrollTop: $(hash).offset().top
+			    }, 900, function(){
+	      			// Add hash (#) to URL when done scrolling (default click behavior)
+	      			window.location.hash = hash;
+	      			});
+    			} // End if 
+  			});
+		})
+	</script>
+</body>
+</html>

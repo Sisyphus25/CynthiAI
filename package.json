@@ -1,0 +1,13 @@
+{
+  "name": "cynthiAi",
+  "description": "AI bot for playing Pokemon Showdown.",
+  "version": "0.0.1",
+  "main": "server.js",
+  "dependencies": {
+    "ejs": "^1.0.0",
+    "express": "^4.15.3"
+  },
+  "engines": {
+    "node": "^6.11.1"
+  }
+}
