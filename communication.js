@@ -19,15 +19,13 @@ var Bot = {
 		this.ROOMS = {};
 		this.NOOFROOMS = 0;
 		//set testing mode on/off		
-		this.onTestingMode = true;
+		this.onTestingMode = false;
 		this.battleFormat = '';
 		this.ID = '';
 		this.password = '';
+		this.recInterval = null;
+		this.client = {};
 		this.createShowdownServer();
-		//receiving and sending message
-		this.client.on('data', function (msg) {
-			Bot.processMessage(msg);
-		});
 	},
 
 	setID: function(userID, password, battleFormat) {	
@@ -37,8 +35,8 @@ var Bot = {
 			this.password = password;
 		}
 		else {
-			this.ID = 'deepai';
-			this.password = 'deepai';
+			this.ID = 'verydeeppotato';
+			this.password = 'deeppotato';
 		}
 		if (!this.client)
 			this.createShowdownServer();
@@ -49,12 +47,29 @@ var Bot = {
 
 	//reserved for testing the performance of the bot
 	startTesting: function() {
-		this.setID('deepai','deepai','gen7randombattle');	
+		this.setID('verydeeppotato','deeppotato','gen7randombattle');	
 	},
 
 	createShowdownServer: function() {
 		var client = sockjs.create("http://sim.smogon.com:8000/showdown");
+		clearInterval(this.recInterval);
+		var thisBot = this;
 		this.client = client;
+		//automatically reconnect
+		client.on('close',function() {
+			socket = null;
+    		thisBot.recInterval = setInterval(function() {
+      			thisBot.createShowdownServer();
+    		}, 5000);
+		});
+		client.on('error',function(err) {
+			console.log(err);
+		})
+
+		//receiving and sending message
+		client.on('data', function (msg) {
+			thisBot.processMessage(msg);
+		});
 	},
 
 	login: function() {
@@ -160,13 +175,17 @@ var Bot = {
 			}
 		}
 
+		if (msg.includes('|updateuser|') && this.ID == '') {
+			this.ID = parts[1];
+		}	
+
 		if (parts[0] != null) {
 			//basically to obtain CHALLSTR, which is required for logging in
 			if (parts[0]=="challstr") {
 				var key_id = parts[1];
 				var Challenge = parts[2];
 				var CHALLSTR = key_id + "|" + Challenge;
-				if (!this.CHALLSTR) {
+				if (!this.CHALLSTR || this.CHALLSTR != CHALLSTR) {
 					this.CHALLSTR = CHALLSTR;
 				}
 				//for testing
@@ -181,16 +200,21 @@ var Bot = {
 					var challengeobj = Object.keys(challenge.challengesFrom);
 					var challenger = challengeobj[0];
 					var format = challenge.challengesFrom[challenger];
-					if (format == "gen7randombattle") {
-						this.client.write("|/utm null");
-						this.client.write("|/accept "+ challenger);
+					if (!this.onTestingMode) { //to prevent the bot from taking too many battles
+						if (format == "gen7randombattle") {
+							this.client.write("|/utm null");
+							this.client.write("|/accept "+ challenger);
+						}
+						else if (format == "gen7customgame") {
+							//Have to feed it some custom team here
+							this.client.write("|/accept "+ challenger);
+						}
+						else if (format!= null) {
+							console.log("Sorry, but the bot can't accept game of this format: " + format);
+						}
 					}
-					else if (format == "gen7customgame") {
-						//Have to feed it some custom team here
-						this.client.write("|/accept "+ challenger);
-					}
-					else if (format!= null) {
-						console.log("Sorry, but the bot can't accept game of this format: "+ format);
+					else {
+						this.client.write('|/reject ' + challenger);
 					}
 				}
 			}
@@ -199,11 +223,10 @@ var Bot = {
 				roomtitle = parts[0].replace(/\n|\r/g,'');
 				if (!Bot.ROOMS[roomtitle]) {
 					var botvsuser = '';
-					if (msg.includes('init')) {
+					if (msg.includes('|init|')) {
 						var botvsuser = parts[4];
+						Bot.addRoom(roomtitle, botvsuser);
 					}
-					Bot.addRoom(roomtitle, botvsuser);
-
 					//for testing -- to speed up testing
 					if (this.onTestingMode) {
 						if (this.NOOFROOMS < 4) {
@@ -235,6 +258,20 @@ var Bot = {
 						}
 
 					}
+					else if (msg.includes('Invalid')|| msg.includes('error')) {
+						var logStream = fs.createWriteStream('error.txt', {'flags': 'a'});
+						// use {'flags': 'a'} to append and {'flags': 'w'} to erase and write a new file
+						logStream.write(msg+'\n');
+						var bot = this.ROOMS[roomtitle].bot;
+						try {
+							logStream.write(JSON.stringify(bot.cTurnOptions));
+						}
+						catch (err) {
+							logStream.write(err+'\n');
+						}
+						logStream.end('')	
+						this.client.write(roomtitle+'|/move');
+					}
 					else if (msg.includes('|l|') || msg.includes('|leave|')) {
 						this.client.write(roomtitle+'|/timer on')
 					}
@@ -245,8 +282,10 @@ var Bot = {
 						if (parts[1] === 'request') {
 							request = JSON.parse(parts[2]);
 							if (request.teamPreview) {
-								this.client.write(roomtitle + "|/team 123456|3"); //dummy
-
+								if (bot.battle.sides[bot.mySID].n == 0)
+									this.client.write(roomtitle + "|/team 123456|2"); //dummy
+								else if (bot.battle.sides[bot.mySID].n == 1)
+									this.client.write(roomtitle + "|/team 123456|3");
 							}
 							else if (request.forceSwitch) {
 								console.log("Have to switch now!");
