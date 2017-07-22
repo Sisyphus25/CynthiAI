@@ -1,11 +1,14 @@
 /* Styling Header */
 .bg-1 {
     background: #2d2d30;
-    color: #bdbdbd;
 }
 .bg-1 h3 {color: #fff;}
 
 .bg-1 form {color: #696969;}
+
+.bg-1 p {
+    color: #bdbdbd;
+}
 
 /* Add a dark background color with a little bit see-through */ 
 .navbar {
@@ -79,7 +82,13 @@ body {
     font-family: Montserrat, sans-serif;
 }
 /* Overwrite default styles of h3 and h4 */
-h3, h4 {
+h4 {
+    margin: 10px 0 30px 0;
+    letter-spacing: 5px; 
+    font-size: 20px;
+    color: #111;
+}
+h3 {
     margin: 10px 0 30px 0;
     letter-spacing: 10px; 
     font-size: 20px;
@@ -90,7 +99,7 @@ h2 {
     margin: 10px 0 20px 0;
     letter-spacing: 10px; 
     font-size: 30px;
-    color: #fff;   
+    color: #000;   
 }
 
 /* Remove rounded borders on input fields */
@@ -121,7 +130,7 @@ textarea {
 }
 
 /*button styling*/
-/* Black buttons with extra padding and without rounded borders */
+/* White buttons with extra padding and without rounded borders */
 .btn {
     padding: 10px 20px;
     background-color: #f1f1f1;
@@ -131,7 +140,22 @@ textarea {
 }
 
 /* On hover, the color of .btn will transition to white with black text */
-.btn:hover, .btn:focus {
+.btn:hover, .sbtn:focus {
+    border: 1px solid #333;
+    background-color: #fff;
+    color: #000;
+}
+
+/*black button */
+.black-btn {
+    padding: 10px 20px;
+    background-color: #000;
+    color: #f1f1f1;
+    border-radius: 0;
+    transition: .2s;
+}
+
+.black-btn:hover, .ebtn:focus {
     border: 1px solid #333;
     background-color: #fff;
     color: #000;
@@ -139,4 +163,48 @@ textarea {
 
 .about p {
      margin: 10px 0 10px 0;   
+}
+
+/*styling the carousel*/
+.carousel-inner img {
+    -webkit-filter: grayscale(90%);
+    filter: grayscale(20%); /* make all photos black and white */ 
+    width: 100%; /* Set width to 100% */
+    margin: auto;
+    -webkit-filter: brightness(80%)
+}
+
+.carousel-caption h3 {
+    color: #fff !important;
+
+}
+
+.carousel {
+    width: 70%; 
+    margin: 0 auto;
+}
+
+.carousel-caption p {
+    color: #fff !important;    
+}
+
+
+@media only screen and (max-width: 900px) {
+  .carousel {
+    width: 100%; 
+    margin: 0 auto;
+}
+
+.panel-group h4 {
+    color: #000;
+}
+
+.panel-body p{
+    color: #000;
+}
+
+@media (max-width: 600px) {
+    .carousel-caption {
+        display: none; /* Hide the carousel text when the screen is less than 600 pixels wide */
+    }
 }

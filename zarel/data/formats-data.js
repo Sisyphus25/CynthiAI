@@ -3169,6 +3169,7 @@ exports.BattleFormatsData = {
 		tier: "RU",
 	},
 	castform: {
+		randomBattleMoves: ["sunnyday", "weatherball", "solarbeam", "icebeam", "thunder", "hurricane"],
 		tier: "NU",
 	},
 	castformsunny: {
@@ -5796,6 +5797,7 @@ exports.BattleFormatsData = {
 	},
 	zygardecomplete: {
 		gen: 7,
+		randomBattleMoves: ["dragondance", "thousandarrows", "outrage", "extremespeed", "irontail"],
 		requiredAbility: "Power Construct",
 		battleOnly: true,
 		tier: "Uber",
@@ -6243,7 +6245,8 @@ exports.BattleFormatsData = {
 		tier: "OU",
 	},
 	mimikyubusted: {
-		battleOnly: true,
+		randomBattleMoves: ["swordsdance", "shadowsneak", "playrough", "woodhammer", "shadowclaw"]
+		//battleOnly: true,
 	},
 	bruxish: {
 		randomBattleMoves: ["psychicfangs", "crunch", "waterfall", "icefang", "aquajet", "swordsdance"],

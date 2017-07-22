@@ -1,9 +1,9 @@
 ﻿'use strict';
 var Pokedex = require('./zarel/data/pokedex.js').BattlePokedex;
 /*
-	This file is used for handling communication between each agent (bot) and server
-	Information regarding battle logs will be collected and processed
-	InterfaceLayer.battle which is a general Battle object keeps a local instant of Battle holding the processed data
+    This file is used for handling communication between each agent (bot) and server
+    Information regarding battle logs will be collected and processed
+    InterfaceLayer.battle which is a general Battle object keeps a local instant of Battle holding the processed data
 */
 
 var simulator = require('./zarel/battle-engine.js').Battle;
@@ -146,7 +146,7 @@ class InterfaceLayer {
     }
 
     runExternalAddMove(pokemon, movename) {
-    	var moveid = toId(movename);
+        var moveid = toId(movename);
         var move = this.battle.getMove(moveid);
         if (move.id && pokemon.moves.indexOf(move.id)==-1) { //if move not yet revealed
             pokemon.moves.push(move.id);
@@ -164,12 +164,12 @@ class InterfaceLayer {
             pokemon.moveset.push(nMove);
         }
         else { //move already revealed
-        	//update pp
-        	for (var i = 0; i < pokemon.moveset.length; i++) {
-        		if (move.id == pokemon.moveset[i].id) {
-					pokemon.moveset[i].pp -= 1
-        		} //TODO: consider pressure
-        	}
+            //update pp
+            for (var i = 0; i < pokemon.moveset.length; i++) {
+                if (move.id == pokemon.moveset[i].id) {
+                    pokemon.moveset[i].pp -= 1
+                } //TODO: consider pressure
+            }
         }
     }
 
@@ -308,7 +308,7 @@ class InterfaceLayer {
             var requestData = JSON.parse(arr[2]); //this is basically bot's team
             if (!this.firstTurn) { //if first turn hasn't started
                 if (this.mySide == 'p1') {
-                	//this is where bot's side is updated with a team
+                    //this is where bot's side is updated with a team
                     this.battle.join(this.mySide, this.uname, this.mySID, this.convertTeamToSet(requestData['side']['pokemon']));
                     //this is wehre opponent's side joins
                     this.battle.join((this.mySide == 'p1' ? 'p2' : 'p1'), 'opponent', 1 - this.mySID, []);
@@ -358,7 +358,7 @@ class InterfaceLayer {
                 this.cTurnMoves[option].choice = option;
             }
             if (requestData['forceSwitch'] && requestData['forceSwitch'][0]) {
-            	//this line below sends a response to the local simulator instead of server, thus we probably won't need it because we'll handle it ourselves
+                //this line below sends a response to the local simulator instead of server, thus we probably won't need it because we'll handle it ourselves
                 //this.cLayer.send(this.id + '|/choose ' + this.agent.decide(this.battle, this.cTurnOptions, this.battle.sides[this.mySID], true), this.mySide);
             }
 
@@ -397,7 +397,7 @@ class InterfaceLayer {
                 }
                 //otherwise it is a new pokemon, thus not found
                 if (!found) {
-                    var pLev = 81;
+                    var pLev = pInfo[1];
                     var pGen = '';
                     if (pInfo[1]) {
                         if (pInfo[1].startsWith(' L')) { //update level
@@ -563,50 +563,50 @@ class InterfaceLayer {
                     this.runExternalStatus(this.battle.sides[1 - this.mySID].active[0], infoarr[1]);
                 }
                 if (arr[4]){
-					if (arr[4].startsWith('[from] ability')) { //for waterabsorb/voltabsorb
-						var ability = arr[4].split(': ')[1];
-						this.runExternalAddAbility(this.battle.sides[1-this.mySID].active[0], toId(ability));
-					}
-					if (arr[4].startsWith('[from] item')) { //for leftovers, life orb..
-						var item = arr[4].split(': ')[1];
-						this.runExternalAddItem(this.battle.sides[1-this.mySID].active[0], toId(item));
-					}
+                    if (arr[4].startsWith('[from] ability')) { //for waterabsorb/voltabsorb
+                        var ability = arr[4].split(': ')[1];
+                        this.runExternalAddAbility(this.battle.sides[1-this.mySID].active[0], toId(ability));
+                    }
+                    if (arr[4].startsWith('[from] item')) { //for leftovers, life orb..
+                        var item = arr[4].split(': ')[1];
+                        this.runExternalAddItem(this.battle.sides[1-this.mySID].active[0], toId(item));
+                    }
                 }
             }
         }
         else if (tag == '-sethp') {
-        	var oppSide = 'p'+(2-this.mySID);
-        	for (var i=2; i < arr.length; i++) {
-        		if (arr[i].startsWith(oppSide)) { //opp
-        			var infoarr = arr[i+1].split(' ');
-					var numerator = infoarr[0].split('/')[0];
-					var denominator = infoarr[0].split('/')[1];
-					this.battle.sides[1-this.mySID].active[0].hp = (numerator/denominator)*this.battle.sides[1-this.mySID].active[0].maxhp;
-        		}
-        		else if (arr[i].startsWith(this.mySide)) { //bot
-         			var infoarr = arr[i+1].split(' ');
- 					var numerator = infoarr[0].split('/')[0];
- 					var denominator = infoarr[0].split('/')[1];
+            var oppSide = 'p'+(2-this.mySID);
+            for (var i=2; i < arr.length; i++) {
+                if (arr[i].startsWith(oppSide)) { //opp
+                    var infoarr = arr[i+1].split(' ');
+                    var numerator = infoarr[0].split('/')[0];
+                    var denominator = infoarr[0].split('/')[1];
+                    this.battle.sides[1-this.mySID].active[0].hp = (numerator/denominator)*this.battle.sides[1-this.mySID].active[0].maxhp;
+                }
+                else if (arr[i].startsWith(this.mySide)) { //bot
+                    var infoarr = arr[i+1].split(' ');
+                    var numerator = infoarr[0].split('/')[0];
+                    var denominator = infoarr[0].split('/')[1];
                     this.battle.sides[this.mySID].active[0].hp = numerator;
-        		}
-        	}
+                }
+            }
         }
         else if (tag == '-immune') {
-        	if (!arr[2].startsWith(this.mySide)) { //to handle water absorb/ volt absorb ability of opp
-        		if (arr[4] && arr[4].startsWith('[from] ability')) {
-        			var ability = arr[4].split(': ')[1];
-        			this.runExternalAddAbility(this.battle.sides[1-this.mySID].active[0], toId(ability));
-        		}
-        	}
+            if (!arr[2].startsWith(this.mySide)) { //to handle water absorb/ volt absorb ability of opp
+                if (arr[4] && arr[4].startsWith('[from] ability')) {
+                    var ability = arr[4].split(': ')[1];
+                    this.runExternalAddAbility(this.battle.sides[1-this.mySID].active[0], toId(ability));
+                }
+            }
         }
         else if (tag == 'faint') {
-        	var side = arr[2].split(' ')[0];
-			if (side.startsWith(this.mySide)) {
-				this.battle.sides[this.mySID].active[0].hp = 0;
-			}
-			else {
-				this.battle.sides[1-this.mySID].active[0].hp = 0;
-			}
+            var side = arr[2].split(' ')[0];
+            if (side.startsWith(this.mySide)) {
+                this.battle.sides[this.mySID].active[0].hp = 0;
+            }
+            else {
+                this.battle.sides[1-this.mySID].active[0].hp = 0;
+            }
         }
         // -weather  Update model.  Can be upkeep (just up the turn counter).  Second value becomes 'none' upon ending
         else if (tag == '-weather') {
@@ -832,19 +832,19 @@ class InterfaceLayer {
         // -detailschange is irrelevant here.  No ubers means no primal means no detailchanges
         //TODO: detailschange change the species and update ablity and update type, perhaps change item to megastone
         else if (tag == 'detailschange') {
-        	var sps = arr[3].split(', ')[0];
-        	if (arr[2].startsWith(this.mySide)) { //p2
-        		this.battle.sides[this.mySID].active[0].species = sps;
-        	}
-        	else {
-				this.battle.sides[1-this.mySID].active[0].species = sps;
-				var Pokemon = Pokedex[toId(sps)];
-				var ability = Pokemon.abilities[0];
-				var types = Pokemon.types;
-				console.log('MEGA ABILITY (IN INTERFACELAYER): ' + ability);
-				this.runExternalAddAbility(this.battle.sides[1-this.mySID].active[0], toId(ability));
-				this.battle.sides[1-this.mySID].active[0].types = types;
-        	}
+            var sps = arr[3].split(', ')[0];
+            if (arr[2].startsWith(this.mySide)) { //p2
+                this.battle.sides[this.mySID].active[0].species = sps;
+            }
+            else {
+                this.battle.sides[1-this.mySID].active[0].species = sps;
+                var Pokemon = Pokedex[toId(sps)];
+                var ability = Pokemon.abilities[0];
+                var types = Pokemon.types;
+                console.log('MEGA ABILITY (IN INTERFACELAYER): ' + ability);
+                this.runExternalAddAbility(this.battle.sides[1-this.mySID].active[0], toId(ability));
+                this.battle.sides[1-this.mySID].active[0].types = types;
+            }
 
         }
 
