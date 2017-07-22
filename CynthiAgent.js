@@ -97,7 +97,7 @@ function CynthiAgent() {
 	this.oppAction = function (gameState, mySID, log) { //TODO: doesn't work when there is choice band/scarf/specs
 		//main idea: compare typing, see if the opp is likely to switch
 		//need to get the type of pokemon, and need to be able to compare type interactivity
-		//TODO: check last move, basically if previous turn the guy didn't switch as expected, then probably will also stay
+		//TODO: check pokemon.position, predict blabla
 
 		var typeInteraction = this.typeCompare(gameState, mySID);
 		var opp_against_bot = typeInteraction.oppvbot;
@@ -243,9 +243,9 @@ function CynthiAgent() {
 
 		}
 		if (oppHpDiff/oldOpp.maxhp <= 0.12) { //penalize in case opp HP stays relatively the same
-			score -= 7;
-			HPscore -= 7;
-			HPoppscore -= 7;
+			score -= 9;
+			HPscore -= 9;
+			HPoppscore -= 9;
 		}
 
 		var botHpDiff = oldBot.hp-newBot.hp;
@@ -323,8 +323,8 @@ function CynthiAgent() {
 		}
 		if (botStatus != oldBot.status) {
 			if (oldBot.status == 'tox') {
-				score += 10;
-				Statscore += 10;
+				score += 12;
+				Statscore += 12;
 			}
 			else if (oldBot.status == 'brn') {
 				score += 8;
@@ -343,8 +343,8 @@ function CynthiAgent() {
 				Statscore += 7;
 			}
 			if (botStatus == 'tox') {
-				score -= 10;
-				Statscore -= 10;
+				score -= 12;
+				Statscore -= 12;
 			}
 			else if (botStatus == 'brn') {
 				score -= 8;
@@ -395,7 +395,6 @@ function CynthiAgent() {
             }
         }
         }
-        //TODO: must be able to break substitute of opp.
 
 		//compare boosts/unboosts
 		//TODO: must do sth about unboosts when hp is low, because moves like superpower and draco meteor arent used
@@ -461,47 +460,56 @@ function CynthiAgent() {
 		//especially after switching, speed is important when switching to finish off something
 		//perhaps don't need, coz simulation already handles this
 
-		//field hazards/conditions (maybe use when not threatened)
-		/**
-
-
-		if (gameState.sides[mySID].sideConditions) {
-			if (gameState.sides[mySID].sideConditions['stealthrock']) {
-				score -= 4*(Object.keys(gameState.sides[mySID].pokemon).length);
-			}
-			if (gameState.sides[mySID].sideConditions['stickyweb']) {
-				score -= 3*(Object.keys(gameState.sides[mySID].pokemon).length);
-			}
-			if (gameState.sides[mySID].sideConditions['spikes']) {
-				var layers = gameState.sides[mySID].sideConditions['spikes'].layers;
-				score -= 2*(Object.keys(gameState.sides[mySID].pokemon).length)*layers;
-			}
-			if (gameState.sides[mySID].sideConditions['toxicspikes']) {
-				var layers = gameState.sides[mySID].sideConditions['toxicspikes'].layers;
-				score -= 2*(Object.keys(gameState.sides[mySID].pokemon).length)*layers;
+		//field hazards/conditions (maybe use when not threatened) //TODO: pokemon.length is always a constant, find a way to count living pokes.
+		var botAliveNumber = 0;
+		var oppAliveNumber = 0;
+		for (var i=0; i < Object.keys(copiedState.sides[this.mySID].pokemon).length; i++) {
+			if (!copiedState.sides[this.mySID].pokemon[i].fainted) {
+				botAliveNumber += 1;
 			}
 		}
-		if (gameState.sides[1-mySID].sideConditions) {
-			if (gameState.sides[1-mySID].sideConditions['stealthrock']) {
-				score += 4*(Object.keys(gameState.sides[1-mySID].pokemon).length);
-			}
-			if (gameState.sides[1-mySID].sideConditions['stickyweb']) {
-				score += 3*(Object.keys(gameState.sides[1-mySID].pokemon).length);
-			}
-			if (gameState.sides[1-mySID].sideConditions['spikes']) {
-				var layers = gameState.sides[1-mySID].sideConditions['spikes'].layers;
-				score += 2*(Object.keys(gameState.sides[1-mySID].pokemon).length)*layers;
-			}
-			if (gameState.sides[1-mySID].sideConditions['toxspikes']) {
-				var layers = gameState.sides[1-mySID].sideConditions['toxicspikes'].layers;
-				score += 2*(Object.keys(gameState.sides[1-mySID].pokemon).length)*layers;
+		for (var i=0; i < Object.keys(copiedState.sides[1-this.mySID].pokemon).length; i++) {
+			if (!copiedState.sides[1-this.mySID].pokemon[i].fainted) {
+				oppAliveNumber += 1
 			}
 		}
-		**/
 
-		//lightscreen reflect? probably compare atl and spatk stats
+		if (copiedState.sides[mySID].sideConditions) {
+			if (copiedState.sides[mySID].sideConditions['stealthrock']) {
+				score -= 4*botAliveNumber;
+			}
+			if (copiedState.sides[mySID].sideConditions['stickyweb']) {
+				score -= 3*botAliveNumber;
+			}
+			if (copiedState.sides[mySID].sideConditions['spikes']) {
+				var layers = copiedState.sides[mySID].sideConditions['spikes'].layers;
+				score -= 2*botAliveNumber*layers;
+			}
+			if (copiedState.sides[mySID].sideConditions['toxicspikes']) {
+				var layers = copiedState.sides[mySID].sideConditions['toxicspikes'].layers;
+				score -= 2*botAliveNumber*layers;
+			}
+		}
+		if (copiedState.sides[1-mySID].sideConditions) {
+			if (copiedState.sides[1-mySID].sideConditions['stealthrock']) {
+				score += 4*oppAliveNumber;
+			}
+			if (copiedState.sides[1-mySID].sideConditions['stickyweb']) {
+				score += 3*oppAliveNumber;
+			}
+			if (copiedState.sides[1-mySID].sideConditions['spikes']) {
+				var layers = copiedState.sides[1-mySID].sideConditions['spikes'].layers;
+				score += 2*oppAliveNumber*layers;
+			}
+			if (copiedState.sides[1-mySID].sideConditions['toxspikes']) {
+				var layers = copiedState.sides[1-mySID].sideConditions['toxicspikes'].layers;
+				score += 2*oppAliveNumber*layers;
+			}
+		}
+		//lightscreen reflect? probably compare atk and spatk stats
 
 		//weather, terrain
+
 		//return score;
 		//return {'score': score, 'O : ': oldBot.hp, 'N : ': newBot.hp};
 		//return {'score': score, 'O': [newOpp.species, typeInteraction.oppvbot], 'B': [newBot.species, typeInteraction.botvopp]};
@@ -555,13 +563,13 @@ function CynthiAgent() {
 			}
             //discourage switches //TODO: add condition that the active is not sleeping
             for (var key in result) {
-            	if (key.startsWith('switch')) result[key].score -= 10;
+            	if (key.startsWith('switch')) result[key].score -= 8;
             }
 			return result;
 		}
-		else { //TODO: after bot poke dies, switch options apparently only simulate once
+		else {
 		//TODO: increase score for moves that missed.
-		//TODO: update stats after mega evo;
+		//TODO: update stats after mega evo; at least speed, but how?
 			var result = {};
 			console.log(options);
 
@@ -599,24 +607,24 @@ function CynthiAgent() {
         			}
         		}
         		console.log("Current Score: "+ currentscore.score + ', ' + action);
-				console.log("Future Score: ");
-				console.log(future);
+				console.log("Future Score: " + futureBestScore);
         		if (futureBestScore != -10000) {
 					currentscore.score += futureBestScore; //basically for each action on this level, score will be incremented by next level's best node's score
 				}
         		result[action] = currentscore;
             }
+            copiedState = 0; //trying to clear idk
             console.log('Depth: ' + level);
 
             //discourage switches
             for (var key in result) {
-            	if (key.startsWith('switch')) result[key].score -= 10;
+            	if (key.startsWith('switch')) result[key].score -= 8;
             }
             return result;
 		}
 	}
 
-    this.decide = function (gameState, options, mySide, forceSwitch) { //TODO: mega evolve and z moves
+    this.decide = function (gameState, options, mySide, forceSwitch) {
     	//AI algo goes here
     	//basic idea: this function will first make a copy of gameState (in order to avoid tampering with gameState which
     	//is what hold our actual battle information), after that the copy of gameState will be modified as we simulate
@@ -647,10 +655,11 @@ function CynthiAgent() {
 			console.log('\n');
 			console.log(results); //an Object
 			console.log('\n');
+			//console.log(copiedState.sides[this.mySID].active[0]);
 
 			var bestScore = -10000;
 			var bestScoreAction = [];
-			for (var action in results) {
+			for (var action in results) { //to discourage protect and destiny bond if previously used
 				if (action == 'move protect' || action == 'move destinybond') {
 					if (gameState.sides[this.mySID].active[0].lastMove == 'protect' || gameState.sides[this.mySID].active[0].lastMove == 'destinybond') {
 						results[action].score -= 7;
@@ -660,17 +669,21 @@ function CynthiAgent() {
 					bestScore = results[action].score;
 				}
 			}
-			for (var action in results) {
+			for (var action in results) { //to score an array of bestScoreActions
 				if (results[action].score == bestScore) {
 					bestScoreAction.push(action);
 				}
 			}
-			if (bestScoreAction.length == 1) {
-				if (gameState.sides[this.mySID].active[0].canMegaEvo && bestScoreAction[0].startsWith('move')) {
-					gameState.sides[this.mySID].active[0].canMegaEvo = false;
-					return bestScoreAction[0]+ ' mega';
+			if (bestScoreAction.length == 1) { //if there is only one best scored action
+				var item = gameState.sides[this.mySID].active[0].item;
+				if ((item.endsWith('ite') || item.endsWith('itex') || item.endsWith('itey')) && bestScoreAction[0].startsWith('move')) { //basically if item is a megastone
+					if (item != 'eviolite') {
+						console.log('Mega item: '+item);
+						gameState.sides[this.mySID].active[0].item = ''; //to prevent sending mega request thereafter
+						return bestScoreAction[0]+ ' mega';
+					}
 				}
-				else return bestScoreAction[0];
+				return bestScoreAction[0];
 			}
 			else { //TODO: consider accuracy; also when there is more than one best score, go to strongestmove
 				var strongestMove;
@@ -692,7 +705,7 @@ function CynthiAgent() {
 						}
 					}
 				}
-
+				var item = gameState.sides[this.mySID].active[0].item;
 				if (KOMoves.length > 0) {
                 	var bestAccuracy = 0;
                 	var mostAccurateMove;
@@ -704,21 +717,33 @@ function CynthiAgent() {
                 			mostAccurateMove = move;
                 		}
                 	}
-                	if (gameState.sides[this.mySID].active[0].canMegaEvo) {
-                		gameState.sides[this.mySID].active[0].canMegaEvo = false;
-                		return 'move ' + mostAccurateMove + ' mega'
+                	if ((item.endsWith('ite') || item.endsWith('itex') || item.endsWith('itey')) && mostAccurateMove.startsWith('move')) {
+                		if (item != 'eviolite') {
+                			console.log('Mega item: '+item);
+                			gameState.sides[this.mySID].active[0].item = ''; //to prevent sending mega request thereafter
+                			return 'move ' + mostAccurateMove + ' mega'
+                		}
                 	}
-                	else return 'move ' + mostAccurateMove;
+                	return 'move ' + mostAccurateMove;
                 }
-                else if (strongestMove) {
-                	if (gameState.sides[this.mySID].active[0].canMegaEvo) {
-                		gameState.sides[this.mySID].active[0].canMegaEvo = false;
-                		return 'move ' + strongestMove + ' mega'
+                else if (strongestMove) { //return strongestMove
+                	if ((item.endsWith('ite') || item.endsWith('itex') || item.endsWith('itey')) && strongestMove.startsWith('move')) {
+                		if (item != 'eviolite') {
+                			console.log('Mega item: '+item);
+                			gameState.sides[this.mySID].active[0].item = ''; //to prevent sending mega request thereafter
+                			return 'move ' + strongestMove + ' mega'
+                		}
                 	}
-                	else return 'move ' + strongestMove;
+                	return 'move ' + strongestMove;
                 }
                 else {
-                	if (gameState.sides[this.mySID].active[0].canMegaEvo && bestScoreAction[0].startsWith('move')) return bestScoreAction[0]+' mega';
+                	if ((item.endsWith('ite') || item.endsWith('itex') || item.endsWith('itey')) && bestScoreAction[0].startsWith('move')) {
+                		if (item != 'eviolite') {
+                			console.log('Mega item: '+item);
+                			gameState.sides[this.mySID].active[0].item = ''; //to prevent sending mega request thereafter
+                			return bestScoreAction[0]+' mega';
+                		}
+                	}
                 	else return bestScoreAction[0];
                 }
 			}
@@ -746,7 +771,6 @@ function CynthiAgent() {
     }
 
     this.assumePokemon = function (pname, plevel, pgender, side) { //maybe add heuristics to predict certain poke's ability, item
-    	//TODO: need to start with species instead of name
         var nSet = {
             species: pname,
             name: pname,

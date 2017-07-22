@@ -397,7 +397,7 @@ class InterfaceLayer {
                 }
                 //otherwise it is a new pokemon, thus not found
                 if (!found) {
-                    var pLev = 81;
+                    var pLev = pInfo[1];
                     var pGen = '';
                     if (pInfo[1]) {
                         if (pInfo[1].startsWith(' L')) { //update level
