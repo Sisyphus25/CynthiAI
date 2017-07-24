@@ -12,6 +12,9 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(bodyParser.json());
 
+//default ID that the bot will use to login
+var ID = require('./userID.js').ID;
+
 //start game
 var bot = require('./communication.js')
 
@@ -48,7 +51,7 @@ app.post('/sendingchallenge', function (req, res) {
 	customTeam = req.body.customTeam;
 	//console.log(req.body);
 	console.log('Sending Challenge Request');
-	bot.setID('verydeeppotato', 'deeppotato', battleformat);
+	bot.setID(ID.userID, ID.password, battleformat);
 	setTimeout(function() {
 		bot.sendingChallenge(userID, battleformat, customTeam);
 	}, 5000)

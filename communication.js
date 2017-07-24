@@ -13,6 +13,9 @@ var fs = require('fs');
 // required connect to server
 var sockjs = require('sockjs-client-ws');
 
+//default ID that the bot will use to login
+var ID = require('./userID.js').ID;
+
 var Bot = {
 
 	initializeBot: function(userID, password, battleFormat) {	
@@ -35,8 +38,8 @@ var Bot = {
 			this.password = password;
 		}
 		else {
-			this.ID = 'verydeeppotato';
-			this.password = 'deeppotato';
+			this.ID = ID.userID;
+			this.password = ID.password;
 		}
 		if (!this.client)
 			this.createShowdownServer();
@@ -47,7 +50,7 @@ var Bot = {
 
 	//reserved for testing the performance of the bot
 	startTesting: function() {
-		this.setID('verydeeppotato','deeppotato','gen7randombattle');	
+		this.setID(ID.userID, ID.password,'gen7randombattle');	
 	},
 
 	createShowdownServer: function() {
@@ -154,7 +157,7 @@ var Bot = {
 	processMessage: function(message) {
 		var parts;
 		var roomtitle; // At the start of every messages directed to a battle, has the format "battle-battletype-roomnumber"
-		var _request;
+		var _request; //to store the request obj from server -- this is different from the request module
 
 		var msg = message.replace(/^\s+/,"");
 
@@ -226,6 +229,7 @@ var Bot = {
 					if (msg.includes('|init|')) {
 						var botvsuser = parts[4];
 						Bot.addRoom(roomtitle, botvsuser);
+						this.client.write(roomtitle+'|/timer on');
 					}
 					//for testing -- to speed up testing
 					if (this.onTestingMode) {
@@ -289,12 +293,16 @@ var Bot = {
 							}
 							else if (_request.forceSwitch) {
 								console.log("Have to switch now!");
-								var move =  bot.agent.decide(bot.battle, bot.cTurnOptions, bot.battle.sides[bot.mySID], true);
-								this.client.write(roomtitle+"|/"+move);
+								this.ROOMS[roomtitle].forceSwitch = true;
 							}
 							else if (_request.active ) {
 								console.log("Have to make a move now!")
 							}
+						}
+						else if (this.ROOMS[roomtitle].forceSwitch && msg.includes('|choice')) {
+							this.ROOMS[roomtitle].forceSwitch = false;
+							var move =  bot.agent.decide(bot.battle, bot.cTurnOptions, bot.battle.sides[bot.mySID], true);
+							this.client.write(roomtitle+"|/"+move);
 						}
 						if (parts[1] === 'error' && msg.includes("You need a switch response")) {
 							var move =  bot.agent.decide(bot.battle, bot.cTurnOptions, bot.battle.sides[bot.mySID], true);
@@ -321,4 +329,5 @@ var Room = function(roomtitle, botvsuser, userID) {
 	this.battleType = roomParts[1];
 	this.cynthiagent = new CynthiAgent();
 	this.bot = new Perspective('Local room', userID, null, this.cynthiagent);
+	this.forceSwitch = false;
 };
