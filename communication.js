@@ -154,7 +154,7 @@ var Bot = {
 	processMessage: function(message) {
 		var parts;
 		var roomtitle; // At the start of every messages directed to a battle, has the format "battle-battletype-roomnumber"
-		var request
+		var _request;
 
 		var msg = message.replace(/^\s+/,"");
 
@@ -280,19 +280,19 @@ var Bot = {
 						var agent = this.ROOMS[roomtitle].cynthiagent;
 						bot.process(msg); //basically to process message sent from server to extract game
 						if (parts[1] === 'request') {
-							request = JSON.parse(parts[2]);
-							if (request.teamPreview) {
+							_request = JSON.parse(parts[2]);
+							if (_request.teamPreview) {
 								if (bot.battle.sides[bot.mySID].n == 0)
 									this.client.write(roomtitle + "|/team 123456|2"); //dummy
 								else if (bot.battle.sides[bot.mySID].n == 1)
 									this.client.write(roomtitle + "|/team 123456|3");
 							}
-							else if (request.forceSwitch) {
+							else if (_request.forceSwitch) {
 								console.log("Have to switch now!");
 								var move =  bot.agent.decide(bot.battle, bot.cTurnOptions, bot.battle.sides[bot.mySID], true);
 								this.client.write(roomtitle+"|/"+move);
 							}
-							else if (request.active ) {
+							else if (_request.active ) {
 								console.log("Have to make a move now!")
 							}
 						}

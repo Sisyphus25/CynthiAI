@@ -42,6 +42,19 @@ app.post('/confirminput', function (req, res) {
 	}
 });
 
+app.post('/sendingchallenge', function (req, res) {
+	userID = req.body.userID;
+	battleformat = req.body.battleformat;
+	customTeam = req.body.customTeam;
+	//console.log(req.body);
+	console.log('Sending Challenge Request');
+	bot.setID('verydeeppotato', 'deeppotato', battleformat);
+	setTimeout(function() {
+		bot.sendingChallenge(userID, battleformat, customTeam);
+	}, 5000)
+
+});
+
 
 app.get('/startbattle', function(req,res){
 	console.log('Initiating Battle');

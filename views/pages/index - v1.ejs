@@ -5,11 +5,11 @@
     <meta charset="utf-8">
   	<meta name="viewport" content="width=device-width, initial-scale=1">
   	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  	<link rel="stylesheet" type="text/css" href="/style.css">
     <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
     <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
     <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet" type="text/css">
 	<link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css">
-  	<link rel="stylesheet" type="text/css" href="/style.css">
 
 </head>
 
@@ -19,7 +19,7 @@
 	</header>
 	<main>
 		<img src="/battle.png" class="battle-image" alt="Battle" >
-		<div id="home">
+		<div  id="home">
   			<div class="container">
     			<h2 class="text-center">CYNTHIAI</h2>
     			<p class="text-center"><em>A Pokemon Showdown AI</em></p>
@@ -83,7 +83,7 @@
 				    <div class="panel-heading">
 				      <h4 class="panel-title text-center">
 				        <a data-toggle="collapse" data-parent="#accordion" href="#collapse1">
-				        Watch the bot battling</a>
+				        Spectate the bot's battle</a>
 				      </h4>
 				    </div>
 				    <div id="collapse1" class="panel-collapse collapse in">
@@ -113,7 +113,7 @@
 				      </h4>
 				    </div>
 				    <div id="collapse3" class="panel-collapse collapse">
-				      <div class="panel-body">This feature is only available in our local version. Every time the bot plays a battle, its score evaluation of each move as well as the relative strength of its pokemon against the opponent's would be logged through the command prompt. To download the local version, please check out 'Source Code' under the 'More' tab.</div>
+				      <div class="panel-body">This feature is only available in our local version. Every time the bot plays a battle, its score evaluation of each move as well as the relative strength of its pokemon agaisnt the opponent's would be logged through the command prompt. To download the local version, please check out 'Source Code' under the 'More' tab.</div>
 				    </div>
 				  </div>
 				</div>
@@ -122,102 +122,43 @@
 		<div class="container" id="instruction">
   			<h3 class="text-center">INSTRUCTIONS</h3>
   			<div class="row middle-align">
-	  			<div class="col-sm-8">
-	  			<ul class="nav nav-tabs nav-justified">
-				  	<li class="active"><a data-toggle="tab" href="#instruction1">Watch the bot battling</a></li>
-				  	<li><a data-toggle="tab" href="#instruction2">Challenge the bot</a></li>
-				</ul>
-				<div class="tab-content">
-				  	<div id="instruction1" class="tab-pane fade in active">
-				    	<ul>
-			  				<li>Make sure you are online on the showdown server with a registered Showdown ID</li>
-			  				<li>Enter your userID, password and pick the the battle format</li>
-			  				<li>Click Login and wait for the bot to log in to the server with the ID you have prepared</li>
-			  				<li>Click Send Challenge Request to have the bot initiate the battle</li>
-			  				<li>If you want start another battle, just click Send Challenge Request again. If you want the bot to log in with another ID, enter the new ID and click login. Take note that logging in with a new ID would result in the bot logging out from the previous ID you enter immediately.</li>
-			  				<br>
-			  			</ul>
-				  	</div>
-				  	<div id="instruction2" class="tab-pane fade">
-				    	<ul>
-			  				<li>Make sure you are online on the showdown server with a registered Showdown ID</li>
-			  				<li>Enter your userID, the battle format you want to fight the bot with and custom team for the bot (only needed for custom game).</li>
-			  				<li>To get a custom team for custom game, you would need to use the Team Builder function on showdown. After you finish assembling your custom team you can click "Export team" to get the team format that our bot uses.</li>
-			  				<li>If the custom team box if left blank and the battle format is custom game, the bot would pick a random team.</li>
-			  				<li>Click Send Challenge Request to have the bot send you a challenge request</li>
-			  				<li>If you want the bot to send challenge request to the same ID and with the same team/battle format, just click Send Challenge Request again. Otherwise, just change the values you have entered before clicking Send Challenge Request</li>
-			  				<br>
-			  			</ul>
-				  	</div>
-				</div>
-	  			
-	  			</div>
+  			<div class="col-sm-8">
+  			<ul>
+  				<li>Make sure you are online on the showdown server with a registered Showdown ID</li>
+  				<li>Enter your userID, password and pick the the battle format</li>
+  				<li>Click Login and wait for the bot to log in to the server with the ID you have prepared</li>
+  				<li>Click Send Challenge Request to have the bot initiate the battle</li>
+  				<li>If you want start another battle, just click Send Challenge Request again. If you want the bot to log in with another ID, enter the new ID and click login. Take note that logging in with a new ID would result in the bot logging out from the previous ID you enter immediately.</li>
+  				<br>
+  			</ul>
   			</div>
-		</div>
-		<div class="text-center bg-1" id="battle">
+  			</div>
+		</div>		
+		<div class="bg-1 text-center" id="battle">
 		 	<div class="container">
-			 	<h3>BATTLE</h3>
-			 	<div class="menu">
-				 	<ul class="nav nav-tabs nav-justified">
-					  	<li class="active"><a data-toggle="tab" href="#tospectate">Spectate the bot battling</a></li>
-					  	<li><a data-toggle="tab" href="#tobattle">Challenge the bot</a></li>
-					</ul>
-				<div>
-				<div class="tab-content">
-				  	<div id="tospectate" class="tab-pane fade in active">
-				    	<br>
-				    	<h3>Watch the bot battling</h3>
-						<p>Input your ID, password and preferred battle format</p>
-						<br>
-				    	<div id ="confirmform">
-							<form class="form-inline form-group" >
-								<div class="well">
-									<label for="ID">Your UserID</label><br>
-									<input type="userID" class="form-control" id="userID" name="userID" required><br>
-									<label for="ID">Your Password</label><br>
-									<input type="password" class="form-control" id="password" name="password" required><br>
-									<label for="format">Battle Format</label><br>
-									<select id="battleformat" name="battleformat">
-										<option value="gen7randombattle">Random Battle</option>
-										<option value="gen7unratedrandombattle">Unrated Random Battle</option>
-									</select><br><br>
-									<button id="confirminput" type="submit" data-loading-text="<i class='fa fa-spinner fa-spin '></i> Logging In">Login</button>
-								</div>
-				  			</form>
-				  		</div>
-						<div class="alert alert-warning hidden" id="myalert" role= "alert">
-			  				Please login first before asking the bot to send a request for random battle.
-						</div>
-						<button id="startbattle" class="btn btn-lg">Send challenge request</button>
-				  	</div>
-				  	<div id="tobattle" class="tab-pane fade">
-				    	<br>
-				    	<h3>Challenge the AI</h3>
-						<p>Input your ID, preferred battle format and custom team</p>
-						<br>
-						<div id ="botchallenging">
-							<form class="form-inline form-group" >
-								<div class="well">
-									<label for="ID">Your UserID</label><br>
-									<input type="challengeID" class="form-control" id="challengeID" name="challengeID" required><br>
-									<label for="format">Battle Format</label><br>
-									<select id="_battleformat" name="_battleformat">
-										<option value="gen7randombattle">Random Battle</option>
-										<option value="gen7customgame">Custom Game</option>
-									</select><br><br>
-									<label for="customTeam">Custom Team</label><br>
-									<textarea class="form-control" rows="10" cols ="70" id="customTeam"></textarea><br><br>
-								</div>
-				  			</form>
-				  		</div>
-						<div class="alert alert-warning hidden" id="myalert" role= "alert">
-			  				Please login first before asking the bot to send a request for random battle.
-						</div>
-						<button id="sendingchallenge" class="btn btn-lg" type="submit" data-loading-text="<i class='fa fa-spinner fa-spin '></i> Logging In">Send challenge request</button>
-				  	</div>
-				</div>
+  			<h3>SPECTATE THE BOT'S BATTLE</h3>
+			<p>Input your ID, preferred battle format and custom team</p>
+			<br>
+			<div id ="confirmform">
+				<form class="form-inline form-group" >
+					<div class="well">
+					<label for="ID">Your UserID</label><br>
+					<input type="userID" class="form-control" id="userID" name="userID" required><br>
+					<label for="ID">Your Password</label><br>
+					<input type="password" class="form-control" id="password" name="password" required><br>
+					<label for="format">Battle Format</label><br>
+					<select id="battleformat" name="battleformat">
+						<option value="gen7randombattle">Random Battle</option>
+						<option value="gen7unratedrandombattle">Unrated Random Battle</option>
+					</select><br><br>
+					<button id="confirminput" type="submit" data-loading-text="<i class='fa fa-spinner fa-spin '></i> Logging In">Login</button>
+					</div>
+	  			</form>
+	  		</div>
+			<div class="alert alert-warning hidden" id="myalert" role= "alert">
+  				Please login first before asking the bot to send a request for random battle.
 			</div>
-			</div>
+			<button id="startbattle" class="btn btn-lg">Send challenge request</button>
 			</div>
 		</div>
 
@@ -225,11 +166,11 @@
   			<div class="container">
     			<h3 class="text-center">ABOUT</h3>
     			<div class="row middle-align justified">
-	    			<div class="col-sm-8">
-		    			<p>Pokemonshowdown.com is a platform that hosts a game simulator for online players to battle against each other using a team of 6 Pokemon. Each Pokemon have unique combination of attacking/non-attacking moves, held item, ability, typing and stats, which makes the game so versatile and thus rendering strategizing difficult. 
-		    			</p>
-		    			<p>Hence the birth of CynthiAI, our showdown bot built to be capable of strategizing as well as making appropriate moves by itself. The bot was written in Node.js and make use of Minimax algorithm.</p>
-	    			</div>
+    			<div class="col-sm-8">
+    			<p>Pokemonshowdown.com is a platform that hosts a game simulator for online players to battle against each other using a team of 6 Pokemon. Each Pokemon have unique combination of attacking/non-attacking moves, held item, ability, typing and stats, which makes the game so versatile and thus rendering strategizing difficult. 
+    			</p>
+    			<p>Hence the birth of CynthiAI, our showdown bot built to be capable of strategizing as well as making appropriate moves by itself. The bot was written in Node.js and make use of Minimax algorithm.</p>
+    			</div>
     			</div>
     			<br>
     			<div class="row middle-align text-center">
@@ -263,22 +204,6 @@
             $.ajax({
                 type: 'POST',
                 url: '/confirminput',
-                data: data,
-                dataType: 'application/json',
-                success: function(data) {
-                    console.log('success');
-                }
-            });        
-        });
-
-        $("#sendingchallenge").click(function(event) {
-            var data = {};
-            data.userID = $('#challengeID').val();
-            data.battleformat = $('#_battleformat').val();
-            data.customTeam = $('textarea').val();           
-            $.ajax({
-                type: 'POST',
-                url: '/sendingchallenge',
                 data: data,
                 dataType: 'application/json',
                 success: function(data) {

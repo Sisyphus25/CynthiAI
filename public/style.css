@@ -188,7 +188,6 @@ textarea {
     color: #fff !important;    
 }
 
-
 @media only screen and (max-width: 900px) {
   .carousel {
     width: 100%; 
@@ -203,8 +202,19 @@ textarea {
     color: #000;
 }
 
+.nav-tabs li a {
+    color: white !important;
+} 
+
+.nav-tabs ul{
+    text-align:center !important; 
+    position: relative; 
+    display: inline-block !important;
+}
+
 @media (max-width: 600px) {
     .carousel-caption {
         display: none; /* Hide the carousel text when the screen is less than 600 pixels wide */
     }
 }
+
