@@ -15,8 +15,9 @@ app.use(bodyParser.json());
 //default ID that the bot will use to login
 var ID = require('./userID.js').ID;
 
-//start game
-var bot = require('./communication.js')
+//create bot
+var communication = require('./communication');
+var bot = new communication.Bot();
 
 //Later this should be put together in a game object -> neater
 var battleformat ='';
