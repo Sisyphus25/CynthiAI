@@ -179,7 +179,7 @@ Bot.prototype.processMessage = function(message) {
 		}
 	}
 
-	if (msg.includes('|updateuser|') && this.ID == '') {
+	if (msg.includes('updateuser|') && this.ID == '') {
 		this.ID = parts[1];
 	}	
 
@@ -225,11 +225,11 @@ Bot.prototype.processMessage = function(message) {
 
 		if (parts[0].includes("battle")) {
 			roomtitle = parts[0].replace(/\n|\r/g,'');
-			if (!Bot.ROOMS[roomtitle]) {
+			if (!this.ROOMS[roomtitle]) {
 				var botvsuser = '';
 				if (msg.includes('|init|')) {
 					var botvsuser = parts[4];
-					Bot.addRoom(roomtitle, botvsuser);
+					this.addRoom(roomtitle, botvsuser);
 					this.client.write(roomtitle+'|/timer on');
 				}
 				//for testing -- to speed up testing
