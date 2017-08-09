@@ -173,11 +173,11 @@ function CynthiAgent() {
 					}
 				}
 				if (log) console.log('KO Moves: '+KOMoves);
-				if (log) console.log("PREDICTION: most accurate Move " + mostAccurateMove);
+				if (log) console.log("PREDICTION: most accurate Move " + mostAccurateMove + ' KO' + '\n');
 				return 'move ' + mostAccurateMove;
 			}
 			else if (strongestMove) {
-				if (log) console.log("PREDICTION: strongest Move " + strongestMove);
+				if (log) console.log("PREDICTION: strongest Move " + strongestMove + ' ' + maxDamage+'/'+hpleft+ '\n');
 				return 'move ' + strongestMove;
 			}
 			else return 'forceskip';
@@ -480,7 +480,7 @@ function CynthiAgent() {
 		//especially after switching, speed is important when switching to finish off something
 		//perhaps don't need, coz simulation already handles this
 
-		//field hazards/conditions (maybe use when not threatened) //TODO: pokemon.length is always a constant, find a way to count living pokes.
+		//field hazards/conditions (maybe use when not threatened)
 		if (true) {
 		var botFaintedNumber = 0;
 		var oppFaintedNumber = 0;
@@ -600,13 +600,14 @@ function CynthiAgent() {
 			}
             //discourage switches //TODO: add condition that the active is not sleeping
             for (var key in result) {
-            	if (key.startsWith('switch')) result[key].score -= 8; //7 is too low
+            	if (key.startsWith('switch')) result[key].score -= 6; //7 is too low
             }
 			return result;
 		}
 		else {
 		//TODO: increase score for moves that missed.
 		//TODO: update stats after mega evo; at least speed, but how?
+		//TODO: discourage taunt (maybe -2) because when attacking moves miss under sim, taunt may be used. which is stupid
 			var result = {};
 			//console.log(options);
 
@@ -663,10 +664,10 @@ function CynthiAgent() {
         				futureBestScore = future[key].score;
         			}
         		}
-        		//console.log("Current Score: "+ currentscore.score + ', ' + action);
-				//console.log("Future Score: " + futureBestScore);
+        		console.log("Current Score: "+ currentscore.score + ', ' + action);
+				console.log("Future Score: " + futureBestScore);
         		if (futureBestScore != -10000) {
-					currentscore.score += 0.4*futureBestScore; //basically for each action on this level, score will be incremented by next level's best node's score
+					currentscore.score += 0.3*futureBestScore; //basically for each action on this level, score will be incremented by next level's best node's score
 				}
         		result[action] = currentscore;
             }
@@ -675,7 +676,7 @@ function CynthiAgent() {
 
             //discourage switches
             for (var key in result) {
-            	if (key.startsWith('switch')) result[key].score -= 8;
+            	if (key.startsWith('switch')) result[key].score -= 6;
             }
             return result;
 		}
@@ -715,11 +716,15 @@ function CynthiAgent() {
 			var bestScore = -10000;
 			var bestScoreAction = [];
 			for (var action in results) { //to discourage protect and destiny bond if previously used
-				if (action == 'move protect' || action == 'move destinybond') {
-					if (gameState.sides[this.mySID].active[0].lastMove == 'protect' || gameState.sides[this.mySID].active[0].lastMove == 'destinybond') {
-						results[action].score -= 7;
+				if (action == 'move protect' || action == 'move destinybond' || action == 'move spikyshield') {
+					if (gameState.sides[this.mySID].active[0].lastMove == 'protect' || gameState.sides[this.mySID].active[0].lastMove == 'destinybond' || gameState.sides[this.mySID].active[0].lastMove == 'spikysiheld') {
+						results[action].score -= 20;
 					}
 				}
+				if (action == 'move fakeout' && !gameState.sides[this.mySID].active[0].newlySwitched) {
+					results[action].score -= 20;
+				}
+
 				if (results[action].score > bestScore) {
 					bestScore = results[action].score;
 				}
@@ -731,9 +736,9 @@ function CynthiAgent() {
 			}
 			if (bestScoreAction.length == 1) { //if there is only one best scored action
 				var item = gameState.sides[this.mySID].active[0].item;
-				//console.log('Item: '+ item + ' line 701')
-				//console.log((item.endsWith('ite') || item.endsWith('itex') || item.endsWith('itey')));
-				//console.log(bestScoreAction[0].startsWith('move'));
+				console.log('Item: '+ item + ' line 701')
+				console.log((item.endsWith('ite') || item.endsWith('itex') || item.endsWith('itey')));
+				console.log(bestScoreAction[0].startsWith('move'));
 				if ((item.endsWith('ite') || item.endsWith('itex') || item.endsWith('itey')) && bestScoreAction[0].startsWith('move')) { //basically if item is a megastone
 					if (item != 'eviolite') {
 						console.log('Mega item: '+item);
@@ -743,7 +748,7 @@ function CynthiAgent() {
 				}
 				return bestScoreAction[0];
 			}
-			else { //TODO: consider accuracy; also when there is more than one best score, go to strongestmove
+			else {
 				var strongestMove;
 				var bestDamage = 0;
 				var KOMoves = [];
@@ -776,8 +781,8 @@ function CynthiAgent() {
                 			mostAccurateMove = move;
                 		}
                 	}
-                	//console.log('Item: '+ item + ' line 743')
-                	if ((item.endsWith('ite') || item.endsWith('itex') || item.endsWith('itey')) && mostAccurateMove.startsWith('move')) {
+                	console.log('Item: '+ item + ' line 743') //TODO: mega evo failure comes from this (probably fixed)
+                	if (item.endsWith('ite') || item.endsWith('itex') || item.endsWith('itey')) {
                 		if (item != 'eviolite') {
                 			console.log('Mega item: '+item);
                 			gameState.sides[this.mySID].active[0].item = ''; //to prevent sending mega request thereafter
@@ -787,7 +792,7 @@ function CynthiAgent() {
                 	return 'move ' + mostAccurateMove;
                 }
                 else if (strongestMove) { //return strongestMove
-                	//console.log('Item: '+ item + ' line 754')
+                	console.log('Item: '+ item + ' line 754')
                 	if ((item.endsWith('ite') || item.endsWith('itex') || item.endsWith('itey')) && strongestMove.startsWith('move')) {
                 		if (item != 'eviolite') {
                 			gameState.sides[this.mySID].active[0].item = ''; //to prevent sending mega request thereafter
@@ -797,7 +802,7 @@ function CynthiAgent() {
                 	return 'move ' + strongestMove;
                 }
                 else {
-                	//console.log('Item: '+ item + ' line 765')
+                	console.log('Item: '+ item + ' line 765')
                 	if ((item.endsWith('ite') || item.endsWith('itex') || item.endsWith('itey')) && bestScoreAction[0].startsWith('move')) {
                 		if (item != 'eviolite') {
                 			console.log('Mega item: '+item);
@@ -841,7 +846,8 @@ function CynthiAgent() {
             evs: { hp: 84, atk: 84, def: 84, spa: 84, spd: 84, spe: 84 }, //apparently all evs are 84, as heard from somebody
             ivs: { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 },
             nature: "Hardy",
-            ability: "Honey Gather"
+            ability: "Honey Gather",
+            item: "Old Amber" //TODO: check if item was recorded in gamestate
         };
         // If the species only has one ability, then the pokemon's ability can only have the one ability.
         // Barring zoroark, skill swap, and role play nonsense.
