@@ -246,9 +246,9 @@ function CynthiAgent() {
 
 		}
 		if (oppHpDiff/oldOpp.maxhp <= 0.12) { //penalize in case opp HP stays relatively the same, should not go to 9
-			score -= 7;
-			HPscore -= 7;
-			HPoppscore -= 7;
+			score -= 9;
+			HPscore -= 9;
+			HPoppscore -= 9;
 		}
 
 		var botHpDiff = oldBot.hp-newBot.hp;
@@ -455,8 +455,8 @@ function CynthiAgent() {
 				var temp = 1;
 				while (temp <= botBoosts[stat]) {
 					if (temp != 0) {
-						score += 3/temp;
-						Boostscore += 3/temp;
+						score += 4/temp;
+						Boostscore += 4/temp;
 					}
 					temp += 1;
 				}
@@ -722,7 +722,7 @@ function CynthiAgent() {
 					}
 				}
 				if (action == 'move fakeout' && !gameState.sides[this.mySID].active[0].newlySwitched) {
-					results[action].score -= 20;
+					results[action].score -= 30;
 				}
 
 				if (results[action].score > bestScore) {
