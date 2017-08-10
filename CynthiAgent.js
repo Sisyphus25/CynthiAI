@@ -711,7 +711,7 @@ function CynthiAgent() {
 			console.log('\n');
 			console.log(results); //an Object
 			console.log('\n');
-			//console.log(copiedState.sides[this.mySID].active[0]);
+			console.log(copiedState.sides[this.mySID].active[0]);
 
 			var bestScore = -10000;
 			var bestScoreAction = [];
@@ -722,7 +722,7 @@ function CynthiAgent() {
 					}
 				}
 				if (action == 'move fakeout' && !gameState.sides[this.mySID].active[0].newlySwitched) {
-					results[action].score -= 30;
+					results[action].score -= 50;
 				}
 
 				if (results[action].score > bestScore) {
