@@ -388,7 +388,7 @@ function CynthiAgent() {
             if (newOpp.volatiles['flinch']) {
             	score += 5;
             }
-            if (newOpp.volatiles['perish2'] || newOpp.volatiles['drowsy']) {
+            if (newOpp.volatiles['perish2'] || newOpp.volatiles['drowsy'] || newOpp.volatiles['leechseed']) {
 				score += 6;
 			}
             if (newOpp.volatiles['taunt']) {
@@ -403,11 +403,11 @@ function CynthiAgent() {
             if (newBot.volatiles['encore'] && copiedState.getMove(newBot.lastMove).category == 'Status') {
             	score -= 15;
             }
-            if (newBot.volatiles['perish2'] || newOpp.volatiles['drowsy']) {
-				score -= 12;
+            if (newBot.volatiles['perish2'] || newOpp.volatiles['drowsy'] || newBot.volatiles['leechseed']) {
+				score -= 10;
 			}
             if (newOpp.volatiles['perish1']) {
-				score -= 10;
+				score -= 12;
 			}
         	if (oldBot.volatiles['substitute'] && !newBot.volatiles['substitute']) {
             	score -= 3;
@@ -455,19 +455,19 @@ function CynthiAgent() {
 				var temp = 1;
 				while (temp <= botBoosts[stat]) {
 					if (temp != 0) {
-						score += 4/temp;
-						Boostscore += 4/temp;
+						score += 6/temp;
+						Boostscore += 6/temp;
 					}
 					temp += 1;
 				}
-				if (newOpp.hp/newOpp.maxhp <= 0.3) score -= 7; //discourage boosts when hp is low
+				if (newOpp.hp/newOpp.maxhp <= 0.3) score -= 9; //discourage boosts when hp is low
 			}
 			if (botBoosts[stat] < 0) {
 				var temp = -1;
 				while (temp >= botBoosts[stat]) {
 					if (temp != 0) {
-						score += 3/temp; //to lower the effects of unboosts
-						Boostscore += 3/temp;
+						score += 4/temp; //to lower the effects of unboosts
+						Boostscore += 4/temp;
 					}
 					temp -= 1;
 				}
@@ -600,7 +600,9 @@ function CynthiAgent() {
 			}
             //discourage switches //TODO: add condition that the active is not sleeping
             for (var key in result) {
-            	if (key.startsWith('switch')) result[key].score -= 6; //7 is too low
+            	if (key.startsWith('switch') $$ gameState.sides[mySID].active[0].hp/gameState.sides[mySID].active[0].maxhp <= 0.25) {
+            		result[key].score -= 4; //7 is too low
+            	}
             }
 			return result;
 		}
@@ -676,7 +678,9 @@ function CynthiAgent() {
 
             //discourage switches
             for (var key in result) {
-            	if (key.startsWith('switch')) result[key].score -= 6;
+            	if (key.startsWith('switch') && gameState.sides[mySID].active[0].hp/gameState.sides[mySID].active[0].maxhp <= 0.25) {
+            		result[key].score -= 4;
+            	}
             }
             return result;
 		}
@@ -793,7 +797,7 @@ function CynthiAgent() {
                 }
                 else if (strongestMove) { //return strongestMove
                 	console.log('Item: '+ item + ' line 754')
-                	if ((item.endsWith('ite') || item.endsWith('itex') || item.endsWith('itey')) && strongestMove.startsWith('move')) {
+                	if (item.endsWith('ite') || item.endsWith('itex') || item.endsWith('itey')) {
                 		if (item != 'eviolite') {
                 			gameState.sides[this.mySID].active[0].item = ''; //to prevent sending mega request thereafter
                 			return 'move ' + strongestMove + ' mega'
