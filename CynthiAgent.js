@@ -201,6 +201,8 @@ function CynthiAgent() {
 
 		//compare type interaction, but this should play only a small part, because moves are more important
 		//if type is shit but has awesome moves, huge plus!
+
+		/*
 		var typeInteraction = this.typeCompare(copiedState, mySID);
 		var Typescore = 0;
 		if (typeInteraction.botvopp > typeInteraction.oppvbot) {
@@ -223,6 +225,7 @@ function CynthiAgent() {
 				Typescore -= 5;
 			}
 		}
+		*/
 
 		//Compare HP
 		if(true) { //to be removed
@@ -253,6 +256,10 @@ function CynthiAgent() {
 			score -= 20*(botHpDiff/oldBot.maxhp);
 			HPscore -= 20*(botHpDiff/oldBot.maxhp)
 			HPbotscore -= 20*(botHpDiff/oldBot.maxhp);
+		}
+		if (newBot.hp == 0) {// if bot ded
+			score -= 10;
+			HPscore -= 10;
 		}
 		}
 
@@ -363,8 +370,8 @@ function CynthiAgent() {
 				Statscore -=7;
 			}
 			else if (botStatus == 'frz') {
-				score -= 7;
-				Statscore -= 7;
+				score -= 12;
+				Statscore -= 12;
 			}
 		}
 		}
@@ -382,6 +389,9 @@ function CynthiAgent() {
             	score += 5;
             }
             if (newOpp.volatiles['perish2'] || newOpp.volatiles['drowsy']) {
+				score += 6;
+			}
+            if (newOpp.volatiles['taunt']) {
 				score -= 5;
 			}
 		}
@@ -392,6 +402,15 @@ function CynthiAgent() {
             }
             if (newBot.volatiles['encore'] && copiedState.getMove(newBot.lastMove).category == 'Status') {
             	score -= 15;
+            }
+            if (newBot.volatiles['perish2'] || newOpp.volatiles['drowsy']) {
+				score -= 6;
+			}
+            if (newOpp.volatiles['perish1']) {
+				score -= 10;
+			}
+        	if (oldBot.volatiles['substitute'] && !newBot.volatiles['substitute']) {
+            	score -= 3;
             }
         }
         }
@@ -436,11 +455,12 @@ function CynthiAgent() {
 				var temp = 1;
 				while (temp <= botBoosts[stat]) {
 					if (temp != 0) {
-						score += 5/temp;
-						Boostscore += 5/temp;
+						score += 3/temp;
+						Boostscore += 3/temp;
 					}
 					temp += 1;
 				}
+				if (newOpp.hp/newOpp.maxhp <= 0.3) score -= 7; //discourage boosts when hp is low
 			}
 			if (botBoosts[stat] < 0) {
 				var temp = -1;
@@ -461,50 +481,52 @@ function CynthiAgent() {
 		//perhaps don't need, coz simulation already handles this
 
 		//field hazards/conditions (maybe use when not threatened) //TODO: pokemon.length is always a constant, find a way to count living pokes.
-		var botAliveNumber = 0;
-		var oppAliveNumber = 0;
+		if (true) {
+		var botFaintedNumber = 0;
+		var oppFaintedNumber = 0;
 		for (var i=0; i < Object.keys(copiedState.sides[this.mySID].pokemon).length; i++) {
-			if (!copiedState.sides[this.mySID].pokemon[i].fainted) {
-				botAliveNumber += 1;
+			if (copiedState.sides[this.mySID].pokemon[i].fainted) {
+				botFaintedNumber += 1;
 			}
 		}
 		for (var i=0; i < Object.keys(copiedState.sides[1-this.mySID].pokemon).length; i++) {
-			if (!copiedState.sides[1-this.mySID].pokemon[i].fainted) {
-				oppAliveNumber += 1
+			if (copiedState.sides[1-this.mySID].pokemon[i].fainted) {
+				oppFaintedNumber += 1
 			}
 		}
 
 		if (copiedState.sides[mySID].sideConditions) {
 			if (copiedState.sides[mySID].sideConditions['stealthrock']) {
-				score -= 4*botAliveNumber;
+				score -= 3*(6-botFaintedNumber);
 			}
 			if (copiedState.sides[mySID].sideConditions['stickyweb']) {
-				score -= 3*botAliveNumber;
+				score -= 3*(6-botFaintedNumber);
 			}
 			if (copiedState.sides[mySID].sideConditions['spikes']) {
 				var layers = copiedState.sides[mySID].sideConditions['spikes'].layers;
-				score -= 2*botAliveNumber*layers;
+				score -= 2*(6-botFaintedNumber)*layers;
 			}
 			if (copiedState.sides[mySID].sideConditions['toxicspikes']) {
 				var layers = copiedState.sides[mySID].sideConditions['toxicspikes'].layers;
-				score -= 2*botAliveNumber*layers;
+				score -= 2*(6-botFaintedNumber)*layers;
 			}
 		}
 		if (copiedState.sides[1-mySID].sideConditions) {
 			if (copiedState.sides[1-mySID].sideConditions['stealthrock']) {
-				score += 4*oppAliveNumber;
+				score += 4*(6-oppFaintedNumber);
 			}
 			if (copiedState.sides[1-mySID].sideConditions['stickyweb']) {
-				score += 3*oppAliveNumber;
+				score += 3*(6-oppFaintedNumber);
 			}
 			if (copiedState.sides[1-mySID].sideConditions['spikes']) {
 				var layers = copiedState.sides[1-mySID].sideConditions['spikes'].layers;
-				score += 2*oppAliveNumber*layers;
+				score += 1*(6-oppFaintedNumber)*layers;
 			}
 			if (copiedState.sides[1-mySID].sideConditions['toxspikes']) {
 				var layers = copiedState.sides[1-mySID].sideConditions['toxicspikes'].layers;
-				score += 2*oppAliveNumber*layers;
+				score += 1*(6-oppFaintedNumber);
 			}
+		}
 		}
 		//lightscreen reflect? probably compare atk and spatk stats
 
@@ -563,7 +585,7 @@ function CynthiAgent() {
 			}
             //discourage switches //TODO: add condition that the active is not sleeping
             for (var key in result) {
-            	if (key.startsWith('switch')) result[key].score -= 8;
+            	if (key.startsWith('switch')) result[key].score -= 6;
             }
 			return result;
 		}
@@ -609,7 +631,7 @@ function CynthiAgent() {
         		console.log("Current Score: "+ currentscore.score + ', ' + action);
 				console.log("Future Score: " + futureBestScore);
         		if (futureBestScore != -10000) {
-					currentscore.score += futureBestScore; //basically for each action on this level, score will be incremented by next level's best node's score
+					currentscore.score += 0.4*futureBestScore; //basically for each action on this level, score will be incremented by next level's best node's score
 				}
         		result[action] = currentscore;
             }
@@ -618,7 +640,7 @@ function CynthiAgent() {
 
             //discourage switches
             for (var key in result) {
-            	if (key.startsWith('switch')) result[key].score -= 8;
+            	if (key.startsWith('switch')) result[key].score -= 6;
             }
             return result;
 		}
@@ -676,6 +698,9 @@ function CynthiAgent() {
 			}
 			if (bestScoreAction.length == 1) { //if there is only one best scored action
 				var item = gameState.sides[this.mySID].active[0].item;
+				console.log('Item: '+ item + ' line 701')
+				console.log((item.endsWith('ite') || item.endsWith('itex') || item.endsWith('itey')));
+				console.log(bestScoreAction[0].startsWith('move'));
 				if ((item.endsWith('ite') || item.endsWith('itex') || item.endsWith('itey')) && bestScoreAction[0].startsWith('move')) { //basically if item is a megastone
 					if (item != 'eviolite') {
 						console.log('Mega item: '+item);
@@ -717,6 +742,7 @@ function CynthiAgent() {
                 			mostAccurateMove = move;
                 		}
                 	}
+                	console.log('Item: '+ item + ' line 743')
                 	if ((item.endsWith('ite') || item.endsWith('itex') || item.endsWith('itey')) && mostAccurateMove.startsWith('move')) {
                 		if (item != 'eviolite') {
                 			console.log('Mega item: '+item);
@@ -727,9 +753,9 @@ function CynthiAgent() {
                 	return 'move ' + mostAccurateMove;
                 }
                 else if (strongestMove) { //return strongestMove
+                	console.log('Item: '+ item + ' line 754')
                 	if ((item.endsWith('ite') || item.endsWith('itex') || item.endsWith('itey')) && strongestMove.startsWith('move')) {
                 		if (item != 'eviolite') {
-                			console.log('Mega item: '+item);
                 			gameState.sides[this.mySID].active[0].item = ''; //to prevent sending mega request thereafter
                 			return 'move ' + strongestMove + ' mega'
                 		}
@@ -737,6 +763,7 @@ function CynthiAgent() {
                 	return 'move ' + strongestMove;
                 }
                 else {
+                	console.log('Item: '+ item + ' line 765')
                 	if ((item.endsWith('ite') || item.endsWith('itex') || item.endsWith('itey')) && bestScoreAction[0].startsWith('move')) {
                 		if (item != 'eviolite') {
                 			console.log('Mega item: '+item);

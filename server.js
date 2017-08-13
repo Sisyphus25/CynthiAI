@@ -13,7 +13,8 @@ app.use(bodyParser.urlencoded({extended:false}));
 app.use(bodyParser.json());
 
 //start game
-var bot = require('./communication.js')
+var bot = require('./communication.js');
+console.log(bot);
 
 //Later this should be put together in a game object -> neater
 var battleformat ='';
@@ -40,6 +41,19 @@ app.post('/confirminput', function (req, res) {
 	if (userID != null && password != null) {
 		bot.setID(userID, password, battleformat);
 	}
+});
+
+app.post('/sendingchallenge', function (req, res) {
+	userID = req.body.userID;
+	battleformat = req.body.battleformat;
+	customTeam = req.body.customTeam;
+	//console.log(req.body);
+	console.log('Sending Challenge Request');
+	bot.setID('verydeeppotato', 'deeppotato', battleformat);
+	setTimeout(function() {
+		bot.sendingChallenge(userID, battleformat, customTeam);
+	}, 5000)
+
 });
 
 
