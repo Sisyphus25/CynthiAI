@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿||Without the entry hazard part||
 
 
@@ -777,3 +778,6 @@ You win!
 
 deepai vs. maohitlol
 You win!
+=======
+﻿
+>>>>>>> e460430ebb0443b35bedbb76e57b06d092cb9058

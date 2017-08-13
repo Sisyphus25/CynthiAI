@@ -19,34 +19,43 @@ var ID = require('./userID.js').ID;
 var Bot = function(){
 };
 
+
 Bot.prototype.initializeBot = function(userID, password, battleFormat) {	
 	this.ROOMS = {};
 	this.NOOFROOMS = 0;
-	//set testing mode on/off		
-	this.onTestingMode = false; //when this is set true, the bot will immediately start battling random battle upon start and will continue until it's forced close. All logs would be recorded. Added to record win/loss ratio
+	//check for existing client 		
+	this.onTestingMode = false; //if true the bot will automatically start battling
 	this.battleFormat = '';
 	this.ID = '';
 	this.password = '';
+	this.acceptChallenges = false; //if true the bot will automatically accepts all challenges
+	//recInterval is for reconnect when client disconnects
 	this.recInterval = null;
 	this.client = {};
+	//check for successful login
+	this.nextID = '';
+	this.successfulLogin = false;
+	//create Server
 	this.createShowdownServer();
 };
 
 Bot.prototype.setID = function(userID, password, battleFormat) {	
 	this.battleFormat = battleFormat;
-	if (userID != null) {
-		this.ID = userID;
+	if (userID != null && password != null) {
+		//this.ID = userID;
 		this.password = password;
+		this.nextID = userID;
 	}
 	else {
-		this.ID = ID.userID;
+		//this.ID = 'CynthiAI';
+		this.nextID = ID.userID;
 		this.password = ID.password;
 	}
 	if (!this.client)
 		this.createShowdownServer();
 	else {
 		this.login();
-	}			
+	}				
 };
 
 //reserved for testing the performance of the bot
@@ -63,7 +72,7 @@ Bot.prototype.createShowdownServer = function() {
 	client.on('close',function() {
 		socket = null;
 		thisBot.recInterval = setInterval(function() {
-  			thisBot.createShowdownServer();
+			thisBot.createShowdownServer();
 		}, 5000);
 	});
 	client.on('error',function(err) {
@@ -103,11 +112,15 @@ Bot.prototype.login = function() {
 		//upon receiving a message from server after POST req is sent, this function will run
 		function (err, response, body) {
 			var data = util.safeJSON(body);
-			var _request = "|/trn " + loginname + ",0," + data.assertion; 
+			let _request = "|/trn " + loginname + ",0," + data.assertion; 
 			client.write(_request); //send assertion to server to confirm login
 			client.write("|/avatar 260"); //set sprite to Cynthia
 		}
-	); 
+		); 
+};
+
+Bot.prototype.logout = function() {
+	this.client.send('|/logout');
 };
 
 Bot.prototype.sendingChallenge = function(userID, battleFormat, customTeamText) {
@@ -116,16 +129,16 @@ Bot.prototype.sendingChallenge = function(userID, battleFormat, customTeamText) 
 	var customTeam = '';
 	if (customTeamText != null) {
 		var teamArray = ExtraTools.importTeam(customTeamText); 
-			var customTeam = ExtraTools.packTeam(teamArray);
-		}
-		//start game
-		if (battleFormat == "gen7customgame") {
-			this.client.write("|/utm "+ customTeam);
+		var customTeam = ExtraTools.packTeam(teamArray);
+	}
+	//start game
+	if (battleFormat == "gen7customgame") {
+		this.client.write("|/utm "+ customTeam);
 		this.client.write("|/challenge " + userID + ", gen7customgame");
-		}
-		else if (battleFormat == "gen7randombattle") {
+	}
+	else if (battleFormat == "gen7randombattle") {
 		this.client.write("|/challenge " + userID + ", gen7randombattle");
-		}
+	}
 };
 
 //Let the bot challenge random player
@@ -158,30 +171,18 @@ Bot.prototype.removeRoom = function(rmnumber) {
 Bot.prototype.processMessage = function(message) {
 	var parts;
 	var roomtitle; // At the start of every messages directed to a battle, has the format "battle-battletype-roomnumber"
-	var _request; //to store the request obj from server -- this is different from the request module
+	var request;
 
 	var msg = message.replace(/^\s+/,"");
 
 	if(msg.charAt(0) === '|' || msg.charAt(0) === '>') {
-			parts = msg.substr(1).split('|');
-		}
+		parts = msg.substr(1).split('|');
+	}
 	else {
 		parts =[];
 	}
 
 	console.log("Start of server message\n "+msg+"\n\n");
-
-	//for testing mode
-	//this is put here because bot starts sending randombattle challenge before it actually logs in
-	if (msg.includes("updateuser") && msg.includes(this.ID) && this.ID != '') {
-		if (this.onTestingMode) {
-			this.startRandomBattle(); //trigger ontestingmode
-		}
-	}
-
-	if (msg.includes('|updateuser|') && this.ID == '') {
-		this.ID = parts[1];
-	}	
 
 	if (parts[0] != null) {
 		//basically to obtain CHALLSTR, which is required for logging in
@@ -196,10 +197,29 @@ Bot.prototype.processMessage = function(message) {
 			if (this.onTestingMode) {
 				this.startTesting();
 			}
+		}
+	}
+
+		else if (msg.includes('updateuser|')) {
+			this.ID = parts[1];
+			if (parts[1] == this.nextID) {
+				this.successfulLogin = true;
+			}
+			if (this.onTestingMode) {
+				this.startRandomBattle(); //trigger testing
+			}
+		}
+
+		else if (msg.includes('|nametaken|')) {
+			if (parts[1] == this.nextID) {
+				this.successfulLogin = false;
+			}
 		}	
 
-		if (msg.includes("updatechallenges")) { //acepting challenges from others
+		else if (msg.includes("updatechallenges")) { //acepting challenges from others
 			var challenge = JSON.parse(parts[1]);
+			//turn off auto accepting challenge for now
+			/**
 			if (challenge.challengesFrom != null) {
 				var challengeobj = Object.keys(challenge.challengesFrom);
 				var challenger = challengeobj[0];
@@ -221,15 +241,18 @@ Bot.prototype.processMessage = function(message) {
 					this.client.write('|/reject ' + challenger);
 				}
 			}
+
+			**/
 		}
 
 		if (parts[0].includes("battle")) {
 			roomtitle = parts[0].replace(/\n|\r/g,'');
-			if (!Bot.ROOMS[roomtitle]) {
+
+			if (!this.ROOMS[roomtitle]) {
 				var botvsuser = '';
 				if (msg.includes('|init|')) {
 					var botvsuser = parts[4];
-					Bot.addRoom(roomtitle, botvsuser);
+					this.addRoom(roomtitle, botvsuser);
 					this.client.write(roomtitle+'|/timer on');
 				}
 				//for testing -- to speed up testing
@@ -247,6 +270,7 @@ Bot.prototype.processMessage = function(message) {
 					logStream.write('\n'+ this.ROOMS[roomtitle].botvsuser);
 					if (msg.includes(this.ID)) {
 						logStream.write('You win!\n');
+
 					}
 					else {
 						logStream.write('You lose!\n');		
@@ -263,55 +287,66 @@ Bot.prototype.processMessage = function(message) {
 					}
 
 				}
-				else if (msg.includes('Invalid')|| msg.includes('error')) {
-					var logStream = fs.createWriteStream('error.txt', {'flags': 'a'});
-					// use {'flags': 'a'} to append and {'flags': 'w'} to erase and write a new file
-					logStream.write(msg+'\n');
-					var bot = this.ROOMS[roomtitle].bot;
-					try {
-						logStream.write(JSON.stringify(bot.cTurnOptions));
-					}
-					catch (err) {
-						logStream.write(err+'\n');
-					}
-					logStream.end('')	
-					this.client.write(roomtitle+'|/move');
-				}
 				else if (msg.includes('|l|') || msg.includes('|leave|')) {
 					this.client.write(roomtitle+'|/timer on')
 				}
 				else {
 					var bot = this.ROOMS[roomtitle].bot;
 					var agent = this.ROOMS[roomtitle].cynthiagent;
+
+
 					bot.process(msg); //basically to process message sent from server to extract game
 					if (parts[1] === 'request') {
-						_request = JSON.parse(parts[2]);
-						if (_request.teamPreview) {
+						request = JSON.parse(parts[2]);
+						if (request.teamPreview) {
 							if (bot.battle.sides[bot.mySID].n == 0)
-								this.client.write(roomtitle + "|/team 123456|2"); //dummy
+								this.client.send(roomtitle + "|/team 123456|2"); //dummy
 							else if (bot.battle.sides[bot.mySID].n == 1)
-								this.client.write(roomtitle + "|/team 123456|3");
+								this.client.send(roomtitle + "|/team 123456|3");
 						}
-						else if (_request.forceSwitch) {
-							console.log("Have to switch now!");
+						else if (request.forceSwitch) {
+							//console.log("Have to switch now!");
 							this.ROOMS[roomtitle].forceSwitch = true;
 						}
-						else if (_request.active ) {
-							console.log("Have to make a move now!")
+						else if (request.active ) {
+							//console.log("Have to make a move now!")
 						}
 					}
+					else if (msg.includes('error') || msg.includes('Invalid')) {
+						if (parts[2].startsWith('[Invalid choice] There')) { //nothing to choose
+						}//TODO: there is [Invalid choice]: Can't move. choose another move
+					//TODO: there is also [invalid choice]: Can't switch.
+						if (parts[2].indexOf('a switch response') >-1 || parts[2].indexOf('switch to a fainted')>-1) { //need switch
+							if (bot.battle.sides[bot.mySID] !== null) {
+								let move = bot.agent.decide(bot.battle, bot.cTurnOptions, bot.battle.sides[bot.mySID], true); //activate CynthiAgent
+								this.client.send(roomtitle+"|/"+move);
+							}
+						}
+					} 
 					else if (this.ROOMS[roomtitle].forceSwitch && msg.includes('|choice')) {
 						this.ROOMS[roomtitle].forceSwitch = false;
-						var move =  bot.agent.decide(bot.battle, bot.cTurnOptions, bot.battle.sides[bot.mySID], true);
-						this.client.write(roomtitle+"|/"+move);
+						var move;
+						if (bot.battle.sides[bot.mySID] !== null) {
+							move = bot.agent.decide(bot.battle, bot.cTurnOptions, bot.battle.sides[bot.mySID], true); //activate CynthiAgent
+						}
+						if (move) {//in case action is undefined, this will be an error, therefore the condition
+							this.client.send(roomtitle + '|/' + move);
+						}
+						else {
+							this.client.send(roomtitle + '|/move');
+						}
 					}
-					if (parts[1] === 'error' && msg.includes("You need a switch response")) {
-						var move =  bot.agent.decide(bot.battle, bot.cTurnOptions, bot.battle.sides[bot.mySID], true);
-						this.client.write(roomtitle+"|/"+move);	
-					}
-					if (msg.indexOf('|turn|') > 0 ) {
-						var move = bot.agent.decide(bot.battle, bot.cTurnOptions, bot.battle.sides[bot.mySID], false);
-						this.client.write(roomtitle+"|/"+move);	
+					if (msg.indexOf('|turn|') > -1 ) {
+						var move;
+						if (bot.battle.sides[bot.mySID] !== null) {
+							move = bot.agent.decide(bot.battle, bot.cTurnOptions, bot.battle.sides[bot.mySID], false); //activate CynthiAgent
+						}
+						if (move) {//in case action is undefined, this will be an error, therefore the condition
+							this.client.send(roomtitle + '|/' + move);
+						}
+						else {
+							this.client.send(roomtitle + '|/move');
+						}	
 					}
 				}
 			}

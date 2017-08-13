@@ -12,9 +12,13 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(bodyParser.json());
 
-//start game
-var bot = require('./communication.js');
-console.log(bot);
+
+//default ID that the bot will use to login
+var ID = require('./userID.js').ID;
+
+//create bot
+var communication = require('./communication');
+var bot = new communication.Bot();
 
 //Later this should be put together in a game object -> neater
 var battleformat ='';
@@ -49,7 +53,9 @@ app.post('/sendingchallenge', function (req, res) {
 	customTeam = req.body.customTeam;
 	//console.log(req.body);
 	console.log('Sending Challenge Request');
-	bot.setID('verydeeppotato', 'deeppotato', battleformat);
+
+	bot.setID(ID.userID, ID.password, battleformat);
+
 	setTimeout(function() {
 		bot.sendingChallenge(userID, battleformat, customTeam);
 	}, 5000)
