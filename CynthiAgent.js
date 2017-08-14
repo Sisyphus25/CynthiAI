@@ -290,8 +290,8 @@ function CynthiAgent() {
 					}
 				}
 				else {
-					score += 7;
-					Statscore += 7;
+					score += 5;
+					Statscore += 5;
 				}
 			}
 			else if (oppStatus == 'par') { //use par when opp is faster
@@ -455,8 +455,8 @@ function CynthiAgent() {
 				var temp = -1;
 				while (temp >= oppBoosts[stat]) {
 					if (temp != 0) {
-						score -= 4/temp;
-						Boostscore -= 4/temp;
+						score -= 3/temp;
+						Boostscore -= 3/temp;
 					}
 					temp -= 1;
 				}
@@ -523,8 +523,8 @@ function CynthiAgent() {
 				Hzdscore -= 3*(6-botFaintedNumber);
 			}
 			if (copiedState.sides[mySID].sideConditions['stickyweb']) {
-				score -= 3*(6-botFaintedNumber);
-				Hzdscore -= 3*(6-botFaintedNumber);
+				score -= 4*(6-botFaintedNumber);
+				Hzdscore -= 4*(6-botFaintedNumber);
 			}
 			if (copiedState.sides[mySID].sideConditions['spikes']) {
 				var layers = copiedState.sides[mySID].sideConditions['spikes'].layers;
@@ -699,16 +699,18 @@ function CynthiAgent() {
         		var future = this.minimax(copiedState, nextOptions, level-1, mySID);
         		//console.log(future);
         		var futureBestScore = -10000; //-infinity
+        		var futureBestScoreAction;
         		for (var key in future) {
         			if (future[key].score > futureBestScore) {
         				//console.log(future[key]);
         				futureBestScore = future[key].score;
+        				futureBestScoreAction = key;
         			}
         		}
         		console.log(action + ': ' + "Current Score: "+ currentscore.score + ', ' + "Future Score: " + futureBestScore);
         		if (futureBestScore != -10000) {
-        			if (action.startsWith('switch')) {
-        				currentscore['effscore'] = currentscore.score + 0.7*futureBestScore; //basically if current action is a switch, then increase significance of the next turn's score
+        			if (futureBestScoreAction && (action.startsWith('switch') && !futureBestScoreAction.startsWith('switch'))) {//to prevent consecutive switches
+        				currentscore['effscore'] = currentscore.score + 0.6*futureBestScore; //basically if current action is a switch, then increase significance of the next turn's score
         			}
 					else currentscore['effscore'] = currentscore.score + 0.3*futureBestScore; //basically for each action on this level, score will be incremented by next level's best node's score
 				}
