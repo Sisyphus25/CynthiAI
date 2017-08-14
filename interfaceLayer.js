@@ -7,7 +7,6 @@ var Pokedex = require('./zarel/data/pokedex.js').BattlePokedex;
 */
 
 var simulator = require('./zarel/battle-engine.js').Battle;
-var fs = require('fs');
 
 class InterfaceLayer {
     constructor(id, username, cLayer, agent) {
@@ -102,7 +101,7 @@ class InterfaceLayer {
 
         if (status == 'fnt') {
             pokemon.status = status.id;
-            pokemon.fainted = true;
+            pokemon.fainted = true; //THIS FUCKING LINE
             pokemon.isActive = false;
             pokemon.isStarted = false;
             pokemon.side.pokemonLeft--;
@@ -528,25 +527,26 @@ class InterfaceLayer {
             if (!arr[2].startsWith(this.mySide)) { //if not myside
                 this.runExternalAddMove(this.battle.sides[1 - this.mySID].active[0], arr[3]); //update opponent's move
                 this.battle.sides[1 - this.mySID].active[0].lastMove = this.battle.getMove(arr[3]).id; //update lastMove
+                this.battle.sides[1 - this.mySID].active[0].activeTurns += 1;
+                this.battle.sides[1 - this.mySID].active[0].newlySwitched = false;
             }
             else {
                 this.battle.sides[this.mySID].active[0].lastMove = this.battle.getMove(arr[3]).id; //update my move
+                this.battle.sides[this.mySID].active[0].activeTurns += 1;
+                this.battle.sides[this.mySID].active[0].newlySwitched = false;
             }
-            var copied = this.battle.copy();
-            //console.log(this.battle.sides[this.mySID]);
-            //console.log(copied.sides[this.mySID]); //working. successfully cloned
-            //console.log("THE ABOVE IS A CLONE");
         }
+
 
         // -damage Update model.  Change only opponent health to the fraction given.  Format: tag, pokemon, status (num/den status), maybe from
         else if (tag == '-damage' || tag == '-heal') { //TODO: update life orb
             if (arr[2].startsWith(this.mySide)) {
                 var info = arr[3];
-                var infoarr = info.split(' ');
+                var infoarr = info.split(' '); // 0/112 fnt/brn/frz
                 var chealth = parseInt(infoarr[0].split('/')[0]);
                 this.battle.sides[this.mySID].active[0].hp = chealth;
                 if (infoarr[1]) {
-                    this.runExternalStatus(this.battle.sides[this.mySID].active[0], infoarr[1]);
+                	this.runExternalStatus(this.battle.sides[this.mySID].active[0], infoarr[1]);
                 }
             }
             else {
@@ -574,6 +574,8 @@ class InterfaceLayer {
                 }
             }
         }
+
+
         else if (tag == '-sethp') {
         	var oppSide = 'p'+(2-this.mySID);
         	for (var i=2; i < arr.length; i++) {
@@ -719,7 +721,7 @@ class InterfaceLayer {
             if (status == 'typechange') {
                 var ntype = arr[4];
                 this.runExternalTypeChange(this.battle.sides[sindex].active[0], ntype);
-                if (arr[5].startsWith('[from]')) {
+                if (arr[5] && arr[5].startsWith('[from]')) {
                     this.runExternalAddAbility(this.battle.sides[sindex].active[0], arr[5].split(' ')[1]);
                 }
             }
@@ -830,11 +832,24 @@ class InterfaceLayer {
             this.battle.sides[sindex].active[0].setBoost(boosts);
         }
         // -detailschange is irrelevant here.  No ubers means no primal means no detailchanges
-        //TODO: detailschange change the species and update ablity and update type, perhaps change item to megastone
         else if (tag == 'detailschange') {
         	var sps = arr[3].split(', ')[0];
-        	if (arr[2].startsWith(this.mySide)) { //p2
+        	if (arr[2].startsWith(this.mySide)) {
         		this.battle.sides[this.mySID].active[0].species = sps;
+        		var activePoke = this.battle.sides[this.mySID].active[0]
+
+        		//update stats here
+        		var baseStats = Pokedex[toId(sps)].baseStats //this is a dictionary of base stats of mega poke
+        		for (var statname in baseStats) { //iterate through basestats of mega poke, calculate actual stats, and update stats
+        			var stat = baseStats[statname];
+        			stat = Math.floor(Math.floor(2 * stat + activePoke.set.ivs[statname] + Math.floor(activePoke.set.evs[statname] / 4)) * activePoke.level / 100 + 5);
+        			activePoke.stats[statname] = stat;
+        		}
+
+        		//update mega types
+				activePoke.types = Pokedex[toId(sps)].types
+        		//update mega abilities
+        		activePoke.ability = toId(Pokedex[toId(sps)].abilities[0]);
         	}
         	else {
 				this.battle.sides[1-this.mySID].active[0].species = sps;
@@ -844,6 +859,13 @@ class InterfaceLayer {
 				console.log('MEGA ABILITY (IN INTERFACELAYER): ' + ability);
 				this.runExternalAddAbility(this.battle.sides[1-this.mySID].active[0], toId(ability));
 				this.battle.sides[1-this.mySID].active[0].types = types;
+
+				// update mega stats
+				var baseStats = Pokedex[toId(sps)].baseStats //this is a dictionary of base stats of mega poke
+        		for (var statname in baseStats) { //iterate through basestats of mega poke, calculate actual stats, and update stats
+        			var stat = baseStats[statname];
+        			stat = Math.floor(Math.floor(2 * stat + activePoke.set.ivs[statname] + Math.floor(activePoke.set.evs[statname] / 4)) * activePoke.level / 100 + 5);
+        			activePoke.stats[statname] = stat;
         	}
 
         }
@@ -933,4 +955,4 @@ class InterfaceLayer {
     }
 }
 
-exports.InterfaceLayer = InterfaceLayer;
+exports.InterfaceLayer = InterfaceLayer

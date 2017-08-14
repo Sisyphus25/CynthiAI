@@ -479,8 +479,8 @@ function CynthiAgent() {
 					temp += 1;
 				}
 				if (oldOpp.hp > 0 && oldOpp.hp/oldOpp.maxhp <= 0.3 && newBot.boosts[stat] > oldBot.boosts[stat]) {
-					score -= 5.33; //discourage extra boosts when hp is low
-					Boostscore -= 5.33;
+					score -= 7.33; //discourage extra boosts when hp is low
+					Boostscore -= 7.33;
 				}
 			}
 			if (botBoosts[stat] < 0) {
