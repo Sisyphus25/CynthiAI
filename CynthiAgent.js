@@ -270,7 +270,7 @@ function CynthiAgent() {
 		}
 		}
 
-		//compare status conditions
+		//compare status conditions //TODO: consider brn and NOT gut
 		if (true) {
 		var Statscore = 0
 		var oppStatus = newOpp.status;
@@ -307,8 +307,8 @@ function CynthiAgent() {
 				}
 			}
 			else if (oppStatus == 'slp') {
-				score += 7;
-				Statscore += 7;
+				score += 25;
+				Statscore += 25;
 			}
 			else if (oppStatus == 'psn') {
 				score += 6;
@@ -356,15 +356,15 @@ function CynthiAgent() {
 				score += 7;
 				Statscore += 7;
 			}
-			if (botStatus == 'tox') {
+			if (botStatus == 'tox' && newBot.ability != 'guts' && newBot.ability != 'toxicboost') {
 				score -= 12;
 				Statscore -= 12;
 			}
-			else if (botStatus == 'brn') {
+			else if (botStatus == 'brn' && newBot.ability != 'guts') {
 				score -= 8;
 				Statscore -= 8;
 			}
-			else if (botStatus == 'par') {
+			else if (botStatus == 'par' && newBot.ability != 'guts') {
 				score -= 7;
 				Statscore -= 7;
 			}
@@ -372,7 +372,7 @@ function CynthiAgent() {
 				score -= 8;
 				Statscore -=8;
 			}
-			else if (botStatus == 'psn') {
+			else if (botStatus == 'psn' && newBot.ability != 'guts') {
 				score -= 7;
 				Statscore -=7;
 			}
@@ -388,8 +388,8 @@ function CynthiAgent() {
 		if (Object.keys(newOpp.volatiles).length > 0) {
 			score += (5*Object.keys(newOpp.volatiles).length);
 			if (newOpp.volatiles['substitute'] || newOpp.volatiles['perish1']) {
-				score -= 13;
-				Volscore -= 13;
+				score -= 16;
+				Volscore -= 16;
 			}
 			if (newOpp.volatiles['encore'] && copiedState.getMove(newOpp.lastMove).category == 'Status') {
             	score += 10;
@@ -435,7 +435,7 @@ function CynthiAgent() {
 
 		//compare boosts/unboosts
 		//TODO: must do sth about unboosts when hp is low, because moves like superpower and draco meteor arent used
-		if (true) {
+
 		var Boostscore = 0;
 		var oppBoosts = newOpp.boosts;
 		var botBoosts = newBot.boosts;
@@ -478,10 +478,6 @@ function CynthiAgent() {
 					}
 					temp += 1;
 				}
-				if (oldOpp.hp > 0 && oldOpp.hp/oldOpp.maxhp <= 0.3 && newBot.boosts[stat] > oldBot.boosts[stat]) {
-					score -= 7.33; //discourage extra boosts when hp is low
-					Boostscore -= 7.33;
-				}
 			}
 			if (botBoosts[stat] < 0) {
 				var temp = -1;
@@ -494,7 +490,15 @@ function CynthiAgent() {
 				}
 			}
 		}
+		if (oldOpp.hp > 0 && oldOpp.hp/oldOpp.maxhp <= 0.3 && newBot.boosts[stat] > oldBot.boosts[stat]) {
+			score -= 7.33; //discourage extra boosts when hp is low
+			Boostscore -= 7.33;
 		}
+		if (newBot.hp > 0 && (oldBot.hp-newBot.hp/oldBot.maxhp) <= 0.4) {
+			score += 9;
+			Boostscore += 9;
+		}
+
 
 
 		//how about priority moves and speed?
@@ -519,8 +523,8 @@ function CynthiAgent() {
 
 		if (copiedState.sides[mySID].sideConditions) {
 			if (copiedState.sides[mySID].sideConditions['stealthrock']) {
-				score -= 3*(6-botFaintedNumber);
-				Hzdscore -= 3*(6-botFaintedNumber);
+				score -= 4*(6-botFaintedNumber);
+				Hzdscore -= 4*(6-botFaintedNumber);
 			}
 			if (copiedState.sides[mySID].sideConditions['stickyweb']) {
 				score -= 4*(6-botFaintedNumber);
@@ -539,8 +543,8 @@ function CynthiAgent() {
 		}
 		if (copiedState.sides[1-mySID].sideConditions) {
 			if (copiedState.sides[1-mySID].sideConditions['stealthrock']) {
-				score += 4.5*(6-oppFaintedNumber);
-				Hzdscore += 4.5*(6-oppFaintedNumber);
+				score += 4*(6-oppFaintedNumber);
+				Hzdscore += 4*(6-oppFaintedNumber);
 			}
 			if (copiedState.sides[1-mySID].sideConditions['stickyweb']) {
 				score += 3*(6-oppFaintedNumber);
@@ -566,7 +570,7 @@ function CynthiAgent() {
 		//return {'score': score, 'O : ': oldBot.hp, 'N : ': newBot.hp};
 		//return {'score': score, 'O': [newOpp.species, typeInteraction.oppvbot], 'B': [newBot.species, typeInteraction.botvopp]};
 		return {score: this.round(score, 2), HP: this.round(HPscore), Status: this.round(Statscore), Boosts: this.round(Boostscore),
-        Volatile: this.round(Volscore), Hazard: this.round(Hzdscore), Speed: this.round(speedscore), P: newBot.species};
+		Volatile: this.round(Volscore), Hazard: this.round(Hzdscore), Speed: this.round(speedscore), P: newBot.species};
 		//return {score: this.round(score, 2), HP: this.round(HPscore), O: this.round(HPoppscore), B: this.round(HPbotscore), P: newBot.species};
 	}
 
@@ -583,9 +587,9 @@ function CynthiAgent() {
         //this.oppAction(gameState, mySID, true); //only for logging
 		if (level == 0) {
 			var result = {};
-			result['PREDICTION'] = this.oppAction(copiedState, mySID);
+			//iterate through each option, replicate copiedState choose botmove, minimax again with level-1
+			result['PREDICTION'] = this.oppAction(gameState, mySID);
 
-			//iterate through each option
 			for (var i=0; i < options.length; i++) {
 				var action = options[i];
 				var copiedState = gameState.copy();
@@ -602,6 +606,7 @@ function CynthiAgent() {
 				}
 
 				if (forceSwitch) { //if all options of bot are switches, then forceskip p1 (coz bot just died duh)
+					//console.log('OPPSIDE WAS FORCESKIPPED')
 					var oppPoke = copiedState.sides[1-mySID].active[0];
 					if (oppPoke.hp == 0 || oppPoke.fainted) {
 						oppPoke.hp = 1
@@ -628,13 +633,13 @@ function CynthiAgent() {
 				if (result['PREDICTION'] == 'forceskip') {
 					var score = {score: 0, HP: 0, Status: 0, Boosts: 0, Volatile: 0, Hazard: 0, Speed: 0, P: copiedState.sides[mySID].active[0].species};
 				}
-				else var score = this.stateScore(gameState, copiedState, mySID)
+				else var score = this.stateScore(gameState, copiedState, mySID);
 				result[action] = score; // this is an object with actions as keys with corresponding object returned by statescore
 			}
             //discourage switches //TODO: add condition that the active is not sleeping
             for (var key in result) {
             	if (key.startsWith('switch')) {
-            		result[key].score -= 6; //7 is too low
+            		result[key].score -= 20;
             		if (gameState.sides[mySID].active[0].hp/gameState.sides[mySID].active[0].maxhp <= 0.30) {
             			result[key].score -= 6;
             		}
@@ -709,7 +714,7 @@ function CynthiAgent() {
         		}
         		console.log(action + ': ' + "Current Score: "+ currentscore.score + ', ' + "Future Score: " + futureBestScore);
         		if (futureBestScore != -10000) {
-        			if (futureBestScoreAction && (action.startsWith('switch') && !futureBestScoreAction.startsWith('switch'))) {//to prevent consecutive switches
+        			if (futureBestScoreAction && (action.startsWith('switch') && !futureBestScoreAction.startsWith('switch'))) {//to prevent consecutive switches (bad)
         				currentscore['effscore'] = currentscore.score + 0.6*futureBestScore; //basically if current action is a switch, then increase significance of the next turn's score
         			}
 					else currentscore['effscore'] = currentscore.score + 0.3*futureBestScore; //basically for each action on this level, score will be incremented by next level's best node's score
@@ -723,7 +728,7 @@ function CynthiAgent() {
             //discourage switches
             for (var key in result) {
             	if (key.startsWith('switch')) {
-            		result[key].score -= 6;
+            		result[key].score -= 20;
             		if (gameState.sides[mySID].active[0].hp/gameState.sides[mySID].active[0].maxhp <= 0.30) {
             			result[key].score -= 6;
             		}
@@ -771,8 +776,7 @@ function CynthiAgent() {
 			var bestScoreAction = [];
 			for (var action in results) { //to discourage protect and destiny bond if previously used
 				if (action == 'move protect' || action == 'move destinybond' || action == 'move spikyshield' ||  action == 'move kingsshield') {
-					if (gameState.sides[this.mySID].active[0].lastMove == 'protect' || gameState.sides[this.mySID].active[0].lastMove == 'destinybond'
-					|| gameState.sides[this.mySID].active[0].lastMove == 'spikysiheld' || gameState.sides[this.mySID].active[0].lastMove == 'kingsshield') {
+					if (gameState.sides[this.mySID].active[0].lastMove == 'protect' || gameState.sides[this.mySID].active[0].lastMove == 'destinybond' || gameState.sides[this.mySID].active[0].lastMove == 'spikyshield' || gameState.sides[this.mySID].active[0].lastMove == 'kingsshield') {
 						results[action]['Current Score'].effscore -= 30;
 					}
 				}
@@ -781,7 +785,7 @@ function CynthiAgent() {
 				}
 
 				if (results[action]['Current Score'].effscore > bestScore) {
-					bestScore = results[action]['Current Score'].score;
+					bestScore = results[action]['Current Score'].effscore;
 				}
 			}
 			for (var action in results) { //to score an array of bestScoreActions
@@ -917,4 +921,4 @@ function CynthiAgent() {
     }
 }
 
-module.exports.CynthiAgent = CynthiAgent;
+module.exports.CynthiAgent = CynthiAgent

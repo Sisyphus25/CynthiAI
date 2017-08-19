@@ -386,9 +386,16 @@ class InterfaceLayer {
                 var found = false; //meaning new pokemon just got revealed, hence not found in team
                 var pInfo = arr[3].split(','); // ['Arcanine', 'L77', 'M']
                 var pName = pInfo[0]; //pokemon species
+                if (arr[4]) {
+                	var pHp = arr[4].split('/')[0]; //this is only a HP percentage
+                }
+
                 //iterate through team, if found (already revealed), update pokemon
                 for (var i = 0; i < this.battle.sides[1 - this.mySID].pokemon.length; i++) {
                     if (pName == this.battle.sides[1 - this.mySID].pokemon[i].species) {
+        				if (arr[4]) {
+        					this.battle.sides[1 - this.mySID].pokemon[i].hp = (pHp/100)*this.battle.sides[1 - this.mySID].pokemon[i].maxhp;
+        				}
                         this.runExternalSwitch(this.battle.sides[1 - this.mySID].pokemon[i], 0);
                         found = true;
                         break;
@@ -836,7 +843,7 @@ class InterfaceLayer {
         	var sps = arr[3].split(', ')[0];
         	if (arr[2].startsWith(this.mySide)) {
         		this.battle.sides[this.mySID].active[0].species = sps;
-        		var activePoke = this.battle.sides[this.mySID].active[0]
+        		var activePoke = this.battle.sides[this.mySID].active[0];
 
         		//update stats here
         		var baseStats = Pokedex[toId(sps)].baseStats //this is a dictionary of base stats of mega poke
@@ -853,6 +860,8 @@ class InterfaceLayer {
         	}
         	else {
 				this.battle.sides[1-this.mySID].active[0].species = sps;
+				var activePoke = this.battle.sides[1-this.mySID].active[0];
+
 				var Pokemon = Pokedex[toId(sps)];
 				var ability = Pokemon.abilities[0];
 				var types = Pokemon.types;
@@ -860,12 +869,13 @@ class InterfaceLayer {
 				this.runExternalAddAbility(this.battle.sides[1-this.mySID].active[0], toId(ability));
 				this.battle.sides[1-this.mySID].active[0].types = types;
 
-				// update mega stats
+				//TODO: update mega stats
 				var baseStats = Pokedex[toId(sps)].baseStats //this is a dictionary of base stats of mega poke
         		for (var statname in baseStats) { //iterate through basestats of mega poke, calculate actual stats, and update stats
         			var stat = baseStats[statname];
         			stat = Math.floor(Math.floor(2 * stat + activePoke.set.ivs[statname] + Math.floor(activePoke.set.evs[statname] / 4)) * activePoke.level / 100 + 5);
         			activePoke.stats[statname] = stat;
+        		}
         	}
 
         }
